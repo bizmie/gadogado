@@ -266,9 +266,30 @@
             from { width: 100%; }
             to { width: 0%; }
         }
+
+        /* Animasi Loading Spinner */
+        .loader-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid rgba(255, 255, 255, 0.1);
+            border-left-color: var(--board-brd); /* Guna warna tema automatik */
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen">
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black z-[250] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="loader-spinner mb-6"></div>
+        <p class="text-yellow-400 text-2xl font-bold tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(255,180,0,0.8)] uppercase">Menyambung...</p>
+        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data dari awan</p>
+    </div>
 
     <!-- Audio Start Overlay -->
     <div id="audio-overlay" class="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center">
@@ -1483,10 +1504,17 @@
         });
 
         // Mula pada Window Load
-        window.addEventListener('firebaseReady', initGameWrapper);
         window.onload = () => {
-            // Fallback jika firebase lambat atau gagal (tunggu 2 saat)
-            setTimeout(initGameWrapper, 2000);
+            // Sela masa 3 saat (Loading Screen) sebelum masuk ke aplikasi
+            setTimeout(() => {
+                const overlay = document.getElementById('loading-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    // Hilangkan terus elemen selepas animasi lutsinar selesai
+                    setTimeout(() => overlay.classList.add('hidden'), 500); 
+                }
+                initGameWrapper();
+            }, 3000);
         };
 
     </script>
