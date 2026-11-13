@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Feud Malaysia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Tema 1: Biru Klasik (Lalaian) */
+            --bg-start: #0f4c75;
+            --bg-end: #1b262c;
+            --board-brd: #ffb400;
+            --board-glow: rgba(255, 180, 0, 0.5);
+            --card-bg-start: #0f4c75;
+            --card-bg-end: #1b262c;
+            --card-brd: #3282b8;
+            --txt-accent: #bbe1fa;
+            --active-glow: rgba(255, 215, 0, 0.8);
+            --active-bg: rgba(255, 215, 0, 0.15);
+        }
+
+        body[data-theme="neon"] {
+            /* Tema 2: Ungu Neon */
+            --bg-start: #4a148c;
+            --bg-end: #120024;
+            --board-brd: #ff007f;
+            --board-glow: rgba(255, 0, 127, 0.5);
+            --card-bg-start: #6a1b9a;
+            --card-bg-end: #38006b;
+            --card-brd: #d500f9;
+            --txt-accent: #ea80fc;
+            --active-glow: rgba(255, 0, 127, 0.8);
+            --active-bg: rgba(255, 0, 127, 0.15);
+        }
+
+        body[data-theme="emerald"] {
+            /* Tema 3: Hijau Zamrud */
+            --bg-start: #0f5132;
+            --bg-end: #042415;
+            --board-brd: #f59e0b;
+            --board-glow: rgba(245, 158, 11, 0.5);
+            --card-bg-start: #198754;
+            --card-bg-end: #0f5132;
+            --card-brd: #20c997;
+            --txt-accent: #a3cfbb;
+            --active-glow: rgba(245, 158, 11, 0.8);
+            --active-bg: rgba(245, 158, 11, 0.15);
+        }
+
+        body {
+            font-family: 'Oswald', sans-serif;
+            background: radial-gradient(circle, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        .board-container {
+            border: 8px solid var(--board-brd);
+            border-radius: 20px;
+            background-color: var(--bg-end);
+            box-shadow: 0 0 20px var(--board-glow), inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 80px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.revealed .flip-card-inner {
+            transform: rotateX(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            border-radius: 8px;
+            border: 2px solid var(--card-brd);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .flip-card-front {
+            background: linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--txt-accent);
+        }
+
+        .flip-card-back {
+            background: linear-gradient(to bottom, #f0f0f0, #d9d9d9);
+            color: #1b262c;
+            transform: rotateX(180deg);
+            padding: 0 15px;
+        }
+
+        .answer-text {
+            flex-grow: 1;
+            text-align: left;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .answer-score {
+            width: 60px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--card-bg-start);
+            color: white;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border-left: 2px solid var(--card-brd);
+        }
+
+        #strike-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        #strike-overlay.show {
+            opacity: 1;
+            animation: flashRed 0.5s ease-in-out;
+        }
+
+        .strike-x {
+            font-size: 15rem;
+            color: red;
+            font-weight: bold;
+            text-shadow: 0 0 30px darkred, 5px 5px 0 black;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #strike-overlay.show .strike-x {
+            transform: scale(1);
+        }
+
+        @keyframes flashRed {
+            0% { background: rgba(0,0,0,0.7); }
+            50% { background: rgba(255,0,0,0.3); }
+            100% { background: rgba(0,0,0,0.7); }
+        }
+
+        .editable:focus {
+            outline: 2px solid var(--board-brd);
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px var(--active-bg), inset 0 0 10px var(--active-bg); border-color: transparent; }
+            50% { box-shadow: 0 0 35px var(--active-glow), inset 0 0 20px var(--board-glow); border-color: var(--board-brd); }
+            100% { box-shadow: 0 0 10px var(--active-bg), inset 0 0 10px var(--active-bg); border-color: transparent; }
+        }
+
+        .team-container {
+            padding: 15px;
+            border: 2px solid transparent;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .active-team {
+            animation: pulseGlow 1.5s infinite alternate;
+            border: 2px solid var(--board-brd);
+            transform: scale(1.05);
+        }
+
+        .winner-text {
+            animation: popInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popInBounce {
+            0% { transform: scale(0.1); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        /* Jawapan Terlepas (Missed) - Kelabu dan Pink */
+        .flip-card.revealed.missed .flip-card-back {
+            background: linear-gradient(to bottom, #444444, #222222);
+            color: #ffb6c1;
+        }
+        .flip-card.revealed.missed .answer-score {
+            background-color: #333333;
+            color: #ffb6c1;
+            border-left: 2px solid #555555;
+        }
+
+        /* Warna Jawapan Berjaya Diteka Mengikut Kumpulan */
+        .flip-card.revealed.team1-ans .answer-text {
+            color: #1d4ed8; /* Biru untuk Kumpulan 1 */
+        }
+        .flip-card.revealed.team2-ans .answer-text {
+            color: #ea580c; /* Oren untuk Kumpulan 2 */
+        }
+
+        .ff-logo-box {
+            border: 6px solid #ffb400;
+            border-radius: 60px;
+            background: linear-gradient(135deg, #0f4c75, #1b262c);
+            padding: 30px 60px;
+            box-shadow: 0 0 30px rgba(255, 180, 0, 0.6), inset 0 0 20px rgba(0,0,0,0.8);
+            text-shadow: 2px 2px 4px #000;
+            display: inline-block;
+        }
+
+        @keyframes btnPulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px #16a34a; }
+            50% { transform: scale(1.1); box-shadow: 0 0 40px #22c55e; border-color: white; }
+            100% { transform: scale(1); box-shadow: 0 0 15px #16a34a; }
+        }
+        .btn-pulse {
+            animation: btnPulse 1.5s infinite;
+        }
+
+        /* Timeout Animasi Butang Seterusnya */
+        .timeout-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .timeout-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            animation: shrinkBar var(--timer-dur, 5s) linear forwards;
+            z-index: 1;
+        }
+        @keyframes shrinkBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+
+    <!-- Audio Start Overlay -->
+    <div id="audio-overlay" class="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center">
+        <div class="ff-logo-box mb-12">
+            <h1 id="game-title-display" class="text-5xl md:text-7xl font-bold text-yellow-400 uppercase tracking-wider text-center drop-shadow-lg leading-tight">Family Feud<br>Malaysia</h1>
+        </div>
+        <button onclick="startAudio()" class="btn-pulse px-12 py-4 bg-green-600 text-white font-bold rounded-full text-3xl border-2 border-transparent transition cursor-pointer">
+            🎵 Mula Bermain
+        </button>
+    </div>
+
+    <!-- Header / Scoreboard -->
+    <header class="w-full flex justify-between items-center p-6 bg-black bg-opacity-40 shadow-lg">
+        <!-- Team 1 (Biru Gelap) -->
+        <div id="team1-container" class="text-center w-1/3 team-container active-team bg-blue-800 bg-opacity-60" onclick="setTurn(1)" title="Klik untuk tukar giliran secara manual">
+            <div id="team1-strikes" class="text-red-500 text-4xl font-bold h-10 tracking-[0.2em]" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
+            <h2 id="team1-name" class="text-3xl font-bold text-blue-100 editable uppercase tracking-wider drop-shadow-md" contenteditable="true" onclick="event.stopPropagation()">Kumpulan 1</h2>
+            <div id="team1-score" class="text-6xl font-bold text-white mt-2 drop-shadow-lg">0</div>
+        </div>
+
+        <!-- Pot / Total Round Score -->
+        <div class="text-center w-1/3 flex flex-col items-center">
+            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5a/Family_Feud_logo.svg/300px-Family_Feud_logo.svg.png" alt="Family Feud" class="h-20 mb-2 filter drop-shadow-lg opacity-80" onerror="this.style.display='none'">
+            <h1 class="text-2xl font-bold text-yellow-400 mb-1">MARKAH PUSINGAN</h1>
+            <div id="round-pot" class="text-5xl font-bold bg-white text-black px-6 py-2 border-4 border-yellow-400 rounded-lg inline-block shadow-[0_0_15px_rgba(255,180,0,0.6)]">0</div>
+        </div>
+
+        <!-- Team 2 (Oren Gelap) -->
+        <div id="team2-container" class="text-center w-1/3 team-container bg-orange-800 bg-opacity-60" onclick="setTurn(2)" title="Klik untuk tukar giliran secara manual">
+            <div id="team2-strikes" class="text-red-500 text-4xl font-bold h-10 tracking-[0.2em]" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
+            <h2 id="team2-name" class="text-3xl font-bold text-orange-100 editable uppercase tracking-wider drop-shadow-md" contenteditable="true" onclick="event.stopPropagation()">Kumpulan 2</h2>
+            <div id="team2-score" class="text-6xl font-bold text-white mt-2 drop-shadow-lg">0</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4">
+        
+        <!-- Question Text -->
+        <div class="mb-6 text-center max-w-4xl">
+            <h3 class="text-xl text-gray-300 uppercase tracking-widest mb-1">Pusingan <span id="round-number">1</span></h3>
+            <h2 id="question-text" class="text-3xl md:text-4xl font-semibold text-yellow-100 mb-2 drop-shadow-md"></h2>
+        </div>
+
+        <!-- Game Board Grid -->
+        <div class="board-container p-6 w-full max-w-5xl">
+            <div id="board" class="grid grid-cols-2 gap-4">
+                <!-- Cards will be injected here via JS -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Host Controls -->
+    <footer class="w-full bg-black bg-opacity-60 p-4 border-t border-gray-700 flex flex-col items-center relative z-10">
+        <div class="flex space-x-4 mb-4">
+            <button onclick="showStrike()" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_red] transition transform hover:scale-105">
+                ❌ STRIKE (SALAH)
+            </button>
+            <button onclick="nextRound()" id="btn-next-round" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_green] transition transform hover:scale-105">
+                PUSINGAN SETERUSNYA ➡️
+            </button>
+            <button onclick="toggleBGM()" id="bgm-btn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_blue] transition transform hover:scale-105 hidden">
+                🔊 BGM (ON)
+            </button>
+        </div>
+
+        <!-- Host Settings Button -->
+        <div class="w-full max-w-4xl text-center">
+            <button onclick="openSettings()" class="text-yellow-400 hover:text-yellow-300 text-sm bg-gray-800 border border-yellow-600 px-3 py-1 rounded shadow-[0_0_5px_rgba(255,180,0,0.5)] transition transform hover:scale-105">
+                ⚙️ Tetapan
+            </button>
+        </div>
+    </footer>
+
+    <!-- Strike Overlay -->
+    <div id="strike-overlay">
+        <div id="strike-container" class="flex space-x-8">
+            <div class="strike-x">X</div>
+        </div>
+    </div>
+
+    <!-- Winner Overlay -->
+    <div id="winner-overlay" class="hidden fixed inset-0 bg-black bg-opacity-95 z-[200] flex-col items-center justify-center text-center overflow-hidden">
+        <canvas id="fireworks-canvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
+        <div class="relative z-10 flex flex-col items-center justify-center">
+            <h2 class="text-4xl text-white mb-2 font-semibold tracking-widest uppercase shadow-black drop-shadow-md">Tahniah!</h2>
+            <h1 id="winner-name-display" class="text-7xl md:text-9xl font-bold text-yellow-400 mb-4 uppercase tracking-widest winner-text drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]">JUARA</h1>
+            <p id="winner-score-display" class="text-3xl md:text-5xl text-white mb-8 font-bold tracking-wider drop-shadow-md bg-black bg-opacity-60 px-8 py-3 rounded-lg border-2 border-yellow-400 shadow-[0_0_15px_rgba(255,180,0,0.5)]">Markah: 0</p>
+            <button onclick="closeWinnerPopup()" class="mt-10 px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full text-xl transition transform hover:scale-105 border border-gray-500 shadow-lg relative z-20">
+                Tutup Paparan
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="bgm-audio" loop></audio>
+    <audio id="victory-audio"></audio>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-95 z-50 overflow-y-auto">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="bg-gray-800 text-white w-full max-w-5xl p-6 rounded-lg shadow-2xl border border-gray-600">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
+                    <div class="flex items-baseline space-x-3">
+                        <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan</h2>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v1.0</span>
+                    </div>
+                    <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
+                </div>
+
+                <!-- Tips Permainan -->
+                <div class="mb-4 bg-green-900 p-4 rounded border border-green-700 shadow-inner">
+                    <h3 class="text-yellow-300 font-bold mb-2">💡 Tips Permainan:</h3>
+                    <ul class="list-disc pl-5 text-sm text-gray-200 space-y-1">
+                        <li>Gunakan butang nombor pada papan kekunci (<strong>1 - 8</strong>) untuk membuka kad jawapan secara pantas.</li>
+                        <li>Tekan butang huruf <strong>'X'</strong> pada papan kekunci untuk efek <strong>STRIKE (Salah)</strong> secara automatik.</li>
+                        <li>Klik pada nama kumpulan pada papan markah (atau di bawah tetapan ini) untuk menukar giliran mereka. Markah akan masuk ke kumpulan yang aktif secara automatik apabila tekaan betul.</li>
+                    </ul>
+                </div>
+
+                <div class="text-sm text-gray-200 mb-4 bg-blue-900 p-3 rounded border border-blue-700">
+                    ℹ️ Anda boleh menetapkan <strong>5 pusingan soalan</strong> dan sehingga <strong>8 jawapan</strong>. Jawapan akan disusun mengikut markah tertinggi secara automatik.
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <!-- Team Names & Theme -->
+                    <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col justify-center gap-4">
+                        <div>
+                            <label class="block text-yellow-400 font-bold text-lg mb-2">🏷️ Tajuk Permainan</label>
+                            <textarea id="setting-game-title" rows="2" placeholder="Cth: Family Feud\nMalaysia" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 resize-none text-center"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-yellow-400 font-bold text-lg mb-2">👥 Nama Kumpulan</label>
+                            <input type="text" id="setting-t1-name" placeholder="Nama Kumpulan 1" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 mb-3 focus:outline-none focus:border-yellow-400">
+                            <input type="text" id="setting-t2-name" placeholder="Nama Kumpulan 2" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400">
+                        </div>
+                        <div>
+                            <label class="block text-yellow-400 font-bold text-lg mb-2">🎨 Tema Warna</label>
+                            <select id="setting-theme" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                                <option value="classic">Biru Klasik (Lalaian)</option>
+                                <option value="neon">Ungu Neon (Misteri)</option>
+                                <option value="emerald">Hijau Zamrud (Alam)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Audio Settings -->
+                    <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col gap-3">
+                        <div>
+                            <label class="block text-yellow-400 font-bold text-lg mb-1">🎵 Audio Tersuai</label>
+                            <p class="text-xs text-gray-400 mb-2">Gunakan URL (MP3) atau fail PC tempatan.</p>
+                        </div>
+                        
+                        <div class="bg-gray-900 p-2 rounded border border-gray-700">
+                            <span class="text-sm font-semibold text-gray-300 block mb-1">Muzik Latar (BGM):</span>
+                            <div class="flex flex-col xl:flex-row gap-2">
+                                <input type="text" id="bgm-url" placeholder="URL BGM" class="flex-grow bg-gray-700 border border-gray-500 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-yellow-400">
+                                <input type="file" id="bgm-file" accept="audio/*" class="w-full xl:w-auto text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer">
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-900 p-2 rounded border border-gray-700">
+                            <span class="text-sm font-semibold text-gray-300 block mb-1">Lagu Kemenangan:</span>
+                            <div class="flex flex-col xl:flex-row gap-2">
+                                <input type="text" id="victory-url" placeholder="URL Kemenangan" class="flex-grow bg-gray-700 border border-gray-500 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-yellow-400">
+                                <input type="file" id="victory-file" accept="audio/*" class="w-full xl:w-auto text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings-form-container" class="space-y-8">
+                    <!-- Form generated by JS -->
+                </div>
+                
+                <div class="mt-8 flex flex-col lg:flex-row justify-between border-t border-gray-600 pt-6 gap-4">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="requestResetToDefault()" class="px-4 py-2 bg-red-800 hover:bg-red-700 rounded font-semibold text-white transition">Reset ke Asal</button>
+                        <button onclick="printQuestions()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-semibold text-white transition shadow-[0_0_10px_blue] transform hover:scale-105">🖨️ Cetak Soalan (Host)</button>
+                        <button id="btn-restart" onclick="requestRestartGame()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-semibold text-white transition shadow-[0_0_10px_yellow] transform hover:scale-105">🔄 Mula Semula (Restart)</button>
+                    </div>
+                    <div class="flex flex-wrap gap-2 lg:justify-end">
+                        <button onclick="closeSettings()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition">Batal</button>
+                        <button onclick="saveSettings()" class="px-8 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-lg shadow-[0_0_10px_green] transition transform hover:scale-105">💾 Simpan & Mula Semula</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert/Confirm Modal -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-[0.95] z-[300] flex items-center justify-center p-4">
+        <div class="bg-gray-800 border-2 border-yellow-500 rounded-xl p-6 max-w-lg w-full text-center shadow-[0_0_20px_rgba(255,180,0,0.5)]">
+            <h3 id="custom-modal-title" class="text-2xl font-bold text-yellow-400 mb-4">Perhatian</h3>
+            <p id="custom-modal-msg" class="text-white text-lg mb-6"></p>
+            <div id="custom-modal-actions" class="flex justify-center space-x-4">
+                <button id="custom-modal-cancel" class="hidden px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded font-bold transition">Batal</button>
+                <button id="custom-modal-ok" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition shadow-[0_0_10px_blue]">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Integrasi Firebase Cloud Storage -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Gunakan config dari anda atau fallback ke persekitaran global
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyDSqblFdWXAIg9IFV3EZN-iLKXhfkL0c2g",
+            authDomain: "mysmartapps.firebaseapp.com",
+            projectId: "mysmartapps",
+            storageBucket: "mysmartapps.firebasestorage.app",
+            messagingSenderId: "329775742642",
+            appId: "1:329775742642:web:e6ecf9a886ba4ddbbcd3ab",
+            measurementId: "G-BE3ME6XNYP"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'family-feud-my';
+
+        window.firebaseIsReady = false;
+        window.firebaseUserId = null;
+        window.db = db;
+        window.appId = appId;
+
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                window.firebaseUserId = auth.currentUser?.uid;
+                window.firebaseIsReady = true;
+                window.dispatchEvent(new Event('firebaseReady'));
+                console.log("🔥 Firebase berjaya disambungkan.");
+            } catch (e) {
+                console.error("Ralat pengesahan Firebase:", e);
+            }
+        }
+
+        window.saveToCloud = async (dataObj) => {
+            if (!window.firebaseIsReady || !window.firebaseUserId) return false;
+            try {
+                // Menyimpan mengikut format keselamatan laluan yang ditetapkan
+                const docRef = doc(db, 'artifacts', appId, 'users', window.firebaseUserId, 'familyFeud', 'gameData');
+                await setDoc(docRef, dataObj);
+                console.log("☁️ Data berjaya disimpan di Cloud.");
+                return true;
+            } catch (e) {
+                console.error("Ralat simpan ke Cloud:", e);
+                return false;
+            }
+        };
+
+        window.loadFromCloud = async () => {
+            if (!window.firebaseIsReady || !window.firebaseUserId) return null;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', window.firebaseUserId, 'familyFeud', 'gameData');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    console.log("☁️ Data berjaya dimuat turun dari Cloud.");
+                    return docSnap.data();
+                }
+                return null;
+            } catch (e) {
+                console.error("Ralat muat turun dari Cloud:", e);
+                return null;
+            }
+        };
+
+        initAuth();
+    </script>
+
+    <script>
+        // Data Soalan (Default)
+        const defaultGameData = [
+            {
+                question: "Namakan benda yang anda selalu lupa bawa apabila keluar rumah.",
+                answers: [
+                    { text: "Dompet / Duit", points: 35 },
+                    { text: "Telefon Pintar", points: 28 },
+                    { text: "Kunci (Rumah/Kereta)", points: 20 },
+                    { text: "Spek Mata", points: 10 },
+                    { text: "Payung", points: 4 },
+                    { text: "Kad Pengenalan", points: 3 }
+                ]
+            },
+            {
+                question: "Apakah alasan popular yang selalu diberikan apabila lewat ke tempat kerja?",
+                answers: [
+                    { text: "Jalan Sesak / Jem", points: 40 },
+                    { text: "Bangun Lambat", points: 25 },
+                    { text: "Kereta Rosak", points: 15 },
+                    { text: "Hujan Lebat", points: 10 },
+                    { text: "Sakit Perut", points: 6 },
+                    { text: "Tayar Pancit", points: 4 }
+                ]
+            },
+            {
+                question: "Namakan haiwan peliharaan yang paling popular di Malaysia.",
+                answers: [
+                    { text: "Kucing", points: 55 },
+                    { text: "Ikan", points: 18 },
+                    { text: "Burung", points: 12 },
+                    { text: "Arnab", points: 8 },
+                    { text: "Hamster", points: 5 },
+                    { text: "Ayam", points: 2 }
+                ]
+            },
+            {
+                question: "Selain nasi, apakah makanan yang selalu dimakan untuk sarapan pagi?",
+                answers: [
+                    { text: "Roti Canai", points: 45 },
+                    { text: "Mee Goreng", points: 20 },
+                    { text: "Kuih-Muih", points: 15 },
+                    { text: "Roti Bakar", points: 10 },
+                    { text: "Biskut", points: 6 },
+                    { text: "Bijirin (Cereal)", points: 4 }
+                ]
+            },
+            {
+                question: "Sebutkan tempat orang selalu pergi pada hujung minggu.",
+                answers: [
+                    { text: "Pusat Membeli-belah", points: 42 },
+                    { text: "Taman Rekreasi", points: 20 },
+                    { text: "Pulang Ke Kampung", points: 15 },
+                    { text: "Tepi Pantai", points: 12 },
+                    { text: "Kenduri Kahwin", points: 8 },
+                    { text: "Panggung Wayang", points: 3 }
+                ]
+            }
+        ];
+
+        let gameData = [];
+        const STORAGE_KEY = 'familyFeudDataMY';
+
+        // State variables
+        let currentRound = 0;
+        let team1Score = 0;
+        let team2Score = 0;
+        let pot = 0; 
+        let revealedAnswers = [];
+        let currentTheme = 'classic';
+        let customBgmUrl = 'https://cdn.pixabay.com/audio/2025/07/30/audio_1e5d067d6f.mp3';
+        let customBgmFileUrl = '';
+        let customVictoryUrl = 'https://cdn.pixabay.com/audio/2026/04/06/audio_4dab561816.mp3';
+        let customVictoryFileUrl = '';
+        let activeTeam = 1; 
+        let currentStrikes = 0; 
+        let missedRevealed = false; 
+        let isCountingDown = false; 
+        let countdownInterval = null; 
+
+        // --- Custom Modal System ---
+        let currentConfirmCallback = null;
+
+        function showAlert(msg) {
+            document.getElementById('custom-modal-title').innerText = "Makluman";
+            document.getElementById('custom-modal-msg').innerText = msg;
+            document.getElementById('custom-modal-cancel').classList.add('hidden');
+            document.getElementById('custom-modal-ok').onclick = closeCustomModal;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function showConfirm(msg, callback) {
+            document.getElementById('custom-modal-title').innerText = "Pengesahan";
+            document.getElementById('custom-modal-msg').innerText = msg;
+            document.getElementById('custom-modal-cancel').classList.remove('hidden');
+            
+            currentConfirmCallback = callback;
+            
+            document.getElementById('custom-modal-cancel').onclick = closeCustomModal;
+            document.getElementById('custom-modal-ok').onclick = () => {
+                closeCustomModal();
+                if (currentConfirmCallback) currentConfirmCallback();
+            };
+            
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            currentConfirmCallback = null;
+        }
+
+        let gameInitialized = false;
+
+        async function initGameWrapper() {
+            if (gameInitialized) return;
+            gameInitialized = true;
+            
+            let loadedFromCloud = false;
+            if (window.firebaseIsReady) {
+                const cloudData = await window.loadFromCloud();
+                if (cloudData) {
+                    applyData(cloudData);
+                    loadedFromCloud = true;
+                }
+            } 
+            
+            // Fallback kepada storan komputer lokal jika cloud gagal/kosong
+            if (!loadedFromCloud) {
+                loadDataFromStorage();
+            }
+
+            initGame();
+        }
+
+        function applyData(data) {
+            currentTheme = data.theme || 'classic';
+            document.body.setAttribute('data-theme', currentTheme);
+            
+            const titleInput = data.title || "Family Feud\nMalaysia";
+            document.getElementById('game-title-display').innerHTML = titleInput.replace(/\n/g, '<br>');
+            
+            customBgmUrl = data.bgmUrl || '';
+            document.getElementById('bgm-audio').src = customBgmUrl;
+            
+            customVictoryUrl = data.victoryUrl || '';
+            document.getElementById('victory-audio').src = customVictoryUrl;
+            
+            document.getElementById('team1-name').innerText = data.t1Name || "Kumpulan 1";
+            document.getElementById('team2-name').innerText = data.t2Name || "Kumpulan 2";
+            
+            gameData = data.gameData || JSON.parse(JSON.stringify(defaultGameData));
+            while (gameData.length < 5) gameData.push({ question: "", answers: [] });
+            gameData = gameData.slice(0, 5); 
+        }
+
+        function initGame() {
+            currentRound = 0;
+            team1Score = 0;
+            team2Score = 0;
+            activeTeam = 1;
+            currentStrikes = 0;
+            updateActiveTeamUI();
+            updateStrikeUI();
+            updateScores();
+            loadRound(currentRound);
+        }
+
+        function returnToIntro() {
+            document.getElementById('audio-overlay').classList.remove('hidden');
+            document.getElementById('bgm-btn').classList.add('hidden');
+            isAudioStarted = false;
+            
+            const bgmAudio = document.getElementById('bgm-audio');
+            bgmAudio.pause();
+            bgmAudio.currentTime = 0;
+
+            const victoryAudio = document.getElementById('victory-audio');
+            victoryAudio.pause();
+            victoryAudio.currentTime = 0;
+            stopFireworks();
+            closeWinnerPopup();
+
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            isCountingDown = false;
+            const nextBtn = document.getElementById('btn-next-round');
+            if (nextBtn) nextBtn.classList.remove('timeout-btn');
+
+            initGame();
+        }
+
+        let restartTimeout = null;
+        function requestRestartGame() {
+            const btn = document.getElementById('btn-restart');
+            if (restartTimeout) {
+                clearTimeout(restartTimeout);
+                restartTimeout = null;
+                btn.innerHTML = "🔄 Mula Semula (Restart)";
+                btn.classList.replace('bg-red-600', 'bg-yellow-600');
+                btn.classList.replace('hover:bg-red-700', 'hover:bg-yellow-500');
+                
+                closeSettings();
+                returnToIntro();
+            } else {
+                btn.innerHTML = "⚠️ Klik Sekali Lagi Untuk Sahkan";
+                btn.classList.replace('bg-yellow-600', 'bg-red-600');
+                btn.classList.replace('hover:bg-yellow-500', 'hover:bg-red-700');
+                restartTimeout = setTimeout(() => {
+                    restartTimeout = null;
+                    btn.innerHTML = "🔄 Mula Semula (Restart)";
+                    btn.classList.replace('bg-red-600', 'bg-yellow-600');
+                    btn.classList.replace('hover:bg-red-700', 'hover:bg-yellow-500');
+                }, 4000);
+            }
+        }
+
+        function requestResetToDefault() {
+            showConfirm("⚠️ Reset Asal: Adakah anda pasti mahu memadam semua data soalan anda dan kembali ke soalan lalai (default)? Segala tetapan anda akan hilang.", () => {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem('familyFeudTheme_MY');
+                localStorage.removeItem('familyFeudTitle_MY');
+                localStorage.removeItem('familyFeudBGMUrl_MY');
+                localStorage.removeItem('familyFeudVictoryUrl_MY');
+                localStorage.removeItem('familyFeudT1Name_MY');
+                localStorage.removeItem('familyFeudT2Name_MY');
+                
+                loadDataFromStorage();
+                
+                if (window.saveToCloud) {
+                    window.saveToCloud({
+                        theme: 'classic',
+                        title: "Family Feud\nMalaysia",
+                        bgmUrl: '',
+                        victoryUrl: '',
+                        t1Name: "Kumpulan 1",
+                        t2Name: "Kumpulan 2",
+                        gameData: gameData
+                    });
+                }
+
+                closeSettings();
+                returnToIntro();
+                showAlert("Berjaya kembali ke soalan asal.");
+            });
+        }
+
+        function setTurn(teamNum) {
+            activeTeam = teamNum;
+            currentStrikes = 0;
+            updateActiveTeamUI();
+            updateStrikeUI();
+        }
+
+        function updateActiveTeamUI() {
+            const t1 = document.getElementById('team1-container');
+            const t2 = document.getElementById('team2-container');
+            if (activeTeam === 1) {
+                t1.classList.add('active-team');
+                t2.classList.remove('active-team');
+            } else {
+                t2.classList.add('active-team');
+                t1.classList.remove('active-team');
+            }
+        }
+
+        function loadDataFromStorage() {
+            const savedTheme = localStorage.getItem('familyFeudTheme_MY');
+            if (savedTheme) {
+                currentTheme = savedTheme;
+                document.body.setAttribute('data-theme', currentTheme);
+            }
+
+            const savedTitle = localStorage.getItem('familyFeudTitle_MY');
+            if (savedTitle) {
+                document.getElementById('game-title-display').innerHTML = savedTitle.replace(/\n/g, '<br>');
+            } else {
+                document.getElementById('game-title-display').innerHTML = "Family Feud<br>Malaysia";
+            }
+
+            const savedBgmUrl = localStorage.getItem('familyFeudBGMUrl_MY');
+            if (savedBgmUrl !== null) customBgmUrl = savedBgmUrl;
+            document.getElementById('bgm-audio').src = customBgmUrl;
+
+            const savedVictoryUrl = localStorage.getItem('familyFeudVictoryUrl_MY');
+            if (savedVictoryUrl !== null) customVictoryUrl = savedVictoryUrl;
+            document.getElementById('victory-audio').src = customVictoryUrl;
+
+            const savedT1 = localStorage.getItem('familyFeudT1Name_MY');
+            if (savedT1) document.getElementById('team1-name').innerText = savedT1;
+            
+            const savedT2 = localStorage.getItem('familyFeudT2Name_MY');
+            if (savedT2) document.getElementById('team2-name').innerText = savedT2;
+
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                try {
+                    gameData = JSON.parse(savedData);
+                } catch (e) {
+                    console.error("Gagal membaca data dari localStorage.", e);
+                    gameData = JSON.parse(JSON.stringify(defaultGameData));
+                }
+            } else {
+                gameData = JSON.parse(JSON.stringify(defaultGameData));
+            }
+            
+            while (gameData.length < 5) gameData.push({ question: "", answers: [] });
+            gameData = gameData.slice(0, 5); 
+        }
+
+        function openSettings() {
+            const currentTitle = document.getElementById('game-title-display').innerHTML.replace(/<br\s*[\/]?>/gi, '\n');
+            document.getElementById('setting-game-title').value = currentTitle;
+
+            document.getElementById('bgm-url').value = customBgmUrl;
+            document.getElementById('bgm-file').value = ""; 
+
+            document.getElementById('victory-url').value = customVictoryUrl;
+            document.getElementById('victory-file').value = ""; 
+
+            document.getElementById('setting-t1-name').value = document.getElementById('team1-name').innerText;
+            document.getElementById('setting-t2-name').value = document.getElementById('team2-name').innerText;
+            
+            document.getElementById('setting-theme').value = currentTheme;
+
+            const container = document.getElementById('settings-form-container');
+            container.innerHTML = ''; 
+
+            for (let i = 0; i < 5; i++) {
+                const round = gameData[i];
+                let answersHtml = '';
+                
+                for (let j = 0; j < 8; j++) {
+                    const ans = round.answers[j] || { text: "", points: "" };
+                    answersHtml += `
+                        <div class="flex items-center space-x-2">
+                            <span class="text-gray-400 w-6 text-right font-bold">${j + 1}.</span>
+                            <input type="text" id="q${i}-a${j}-text" value="${ans.text}" placeholder="Teks Jawapan" class="flex-grow bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white focus:outline-none focus:border-yellow-400 focus:bg-gray-600 transition">
+                            <input type="number" id="q${i}-a${j}-points" value="${ans.points}" placeholder="Mata" min="0" max="100" class="w-20 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center focus:outline-none focus:border-yellow-400 focus:bg-gray-600 transition">
+                        </div>
+                    `;
+                }
+
+                container.innerHTML += `
+                    <div class="bg-gray-900 p-5 rounded-lg border border-gray-700 shadow-inner">
+                        <label class="block text-yellow-400 font-bold mb-2 text-xl">Soalan Pusingan ${i + 1}:</label>
+                        <input type="text" id="q${i}-text" value="${round.question}" placeholder="Taip soalan di sini..." class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-4 focus:outline-none focus:border-yellow-400 focus:bg-gray-700 text-lg transition">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+                            ${answersHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            const bgmUrlInput = document.getElementById('bgm-url').value.trim();
+            const bgmFileInput = document.getElementById('bgm-file').files[0];
+            const bgmAudio = document.getElementById('bgm-audio');
+
+            const victoryUrlInput = document.getElementById('victory-url').value.trim();
+            const victoryFileInput = document.getElementById('victory-file').files[0];
+            const victoryAudio = document.getElementById('victory-audio');
+
+            if (bgmFileInput) {
+                if (customBgmFileUrl) URL.revokeObjectURL(customBgmFileUrl);
+                customBgmFileUrl = URL.createObjectURL(bgmFileInput);
+                bgmAudio.src = customBgmFileUrl;
+                customBgmUrl = '';
+                localStorage.setItem('familyFeudBGMUrl_MY', ''); 
+            } else if (bgmUrlInput) {
+                customBgmUrl = bgmUrlInput;
+                bgmAudio.src = customBgmUrl;
+                localStorage.setItem('familyFeudBGMUrl_MY', customBgmUrl);
+                customBgmFileUrl = '';
+            } else if (!bgmFileInput && bgmUrlInput === '') {
+                customBgmUrl = '';
+                bgmAudio.src = '';
+                localStorage.setItem('familyFeudBGMUrl_MY', '');
+            }
+
+            if (victoryFileInput) {
+                if (customVictoryFileUrl) URL.revokeObjectURL(customVictoryFileUrl);
+                customVictoryFileUrl = URL.createObjectURL(victoryFileInput);
+                victoryAudio.src = customVictoryFileUrl;
+                customVictoryUrl = '';
+                localStorage.setItem('familyFeudVictoryUrl_MY', '');
+            } else if (victoryUrlInput !== '') {
+                customVictoryUrl = victoryUrlInput;
+                victoryAudio.src = customVictoryUrl;
+                localStorage.setItem('familyFeudVictoryUrl_MY', customVictoryUrl);
+                customVictoryFileUrl = '';
+            } else {
+                customVictoryUrl = '';
+                victoryAudio.src = '';
+                localStorage.setItem('familyFeudVictoryUrl_MY', '');
+            }
+
+            const titleInput = document.getElementById('setting-game-title').value.trim() || "Family Feud\nMalaysia";
+            document.getElementById('game-title-display').innerHTML = titleInput.replace(/\n/g, '<br>');
+            localStorage.setItem('familyFeudTitle_MY', titleInput);
+
+            const t1Input = document.getElementById('setting-t1-name').value.trim() || "Kumpulan 1";
+            const t2Input = document.getElementById('setting-t2-name').value.trim() || "Kumpulan 2";
+            document.getElementById('team1-name').innerText = t1Input;
+            document.getElementById('team2-name').innerText = t2Input;
+            localStorage.setItem('familyFeudT1Name_MY', t1Input);
+            localStorage.setItem('familyFeudT2Name_MY', t2Input);
+
+            currentTheme = document.getElementById('setting-theme').value;
+            localStorage.setItem('familyFeudTheme_MY', currentTheme);
+            document.body.setAttribute('data-theme', currentTheme);
+
+            const newData = [];
+            for (let i = 0; i < 5; i++) {
+                const qText = document.getElementById(`q${i}-text`).value.trim();
+                const answers = [];
+                for (let j = 0; j < 8; j++) {
+                    const aText = document.getElementById(`q${i}-a${j}-text`).value.trim();
+                    const aPoints = parseInt(document.getElementById(`q${i}-a${j}-points`).value) || 0;
+                    if (aText !== "") answers.push({ text: aText, points: aPoints });
+                }
+                answers.sort((a, b) => b.points - a.points);
+                newData.push({ question: qText || `Soalan ${i + 1} (Tiada Tajuk)`, answers: answers });
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+            gameData = newData;
+
+            if (window.saveToCloud) {
+                window.saveToCloud({
+                    theme: currentTheme,
+                    title: titleInput,
+                    bgmUrl: customBgmUrl,
+                    victoryUrl: customVictoryUrl,
+                    t1Name: t1Input,
+                    t2Name: t2Input,
+                    gameData: newData
+                });
+            }
+
+            closeSettings();
+            
+            showAlert("✅ Tetapan berjaya disimpan (Lokal & Cloud)! Membawa anda ke skrin utama.");
+            returnToIntro();
+        }
+
+        function printQuestions() {
+            const printWindow = window.open('', '_blank');
+            let htmlContent = `
+            <!DOCTYPE html>
+            <html lang="ms">
+            <head>
+                <meta charset="UTF-8">
+                <title>Cetak Kad Host - Family Feud</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+                    h1 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    .round-container { margin-bottom: 40px; page-break-inside: avoid; }
+                    .question-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; background: #eee; padding: 10px; border-radius: 5px; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+                    .answer-box { border: 2px solid #333; display: flex; font-size: 1.1rem; }
+                    .num { background: #333; color: #fff; padding: 10px 15px; font-weight: bold; }
+                    .text { flex-grow: 1; padding: 10px; font-weight: bold; text-transform: uppercase; }
+                    .points { background: #ddd; padding: 10px 15px; font-weight: bold; border-left: 2px solid #333; text-align: center; width: 40px; }
+                    .empty-box { border: 2px dashed #999; display: flex; color: #999; }
+                    @media print { .no-print { display: none !important; } body { padding: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="text-align:center; margin-bottom: 20px;">
+                    <button onclick="window.print()" style="padding: 10px 20px; font-size: 18px; cursor: pointer; background: #000; color:#fff; border:none; border-radius:5px;">Cetak Sekarang</button>
+                </div>
+                <h1>Kad Rujukan Host - Family Feud</h1>
+            `;
+
+            gameData.forEach((round, index) => {
+                htmlContent += `
+                <div class="round-container">
+                    <div class="question-title">Pusingan ${index + 1}: ${round.question || '(Tiada Soalan Ditulis)'}</div>
+                    <div class="grid">`;
+                for (let i = 0; i < 8; i++) {
+                    if (round.answers && round.answers[i] && round.answers[i].text.trim() !== "") {
+                        htmlContent += `
+                        <div class="answer-box">
+                            <div class="num">${i + 1}</div>
+                            <div class="text">${round.answers[i].text}</div>
+                            <div class="points">${round.answers[i].points}</div>
+                        </div>`;
+                    } else {
+                        htmlContent += `
+                        <div class="empty-box">
+                            <div class="num" style="background:#999;">${i + 1}</div>
+                            <div class="text" style="font-weight:normal;">(Tiada Jawapan)</div>
+                            <div class="points" style="border-color:#999; background:#eee;">-</div>
+                        </div>`;
+                    }
+                }
+                htmlContent += `</div></div>`;
+            });
+
+            htmlContent += `</body></html>`;
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 500);
+        }
+
+        function loadRound(roundIndex) {
+            if (roundIndex >= gameData.length) return;
+            
+            const roundData = gameData[roundIndex];
+            revealedAnswers = new Array(roundData.answers.length).fill(false);
+            pot = 0;
+            currentStrikes = 0;
+            updateStrikeUI();
+            
+            document.getElementById('round-number').innerText = roundIndex + 1;
+            document.getElementById('question-text').innerText = roundData.question;
+            
+            const nextBtn = document.getElementById('btn-next-round');
+            if (nextBtn) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                isCountingDown = false;
+                nextBtn.classList.remove('timeout-btn');
+
+                if (roundIndex >= gameData.length - 1) {
+                    nextBtn.innerHTML = "<span class='relative z-10'>PUSINGAN AKHIR 🏁</span>";
+                    nextBtn.classList.replace('bg-green-600', 'bg-yellow-600');
+                    nextBtn.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
+                    nextBtn.classList.replace('shadow-[0_0_10px_green]', 'shadow-[0_0_10px_yellow]');
+                } else {
+                    nextBtn.innerHTML = "<span class='relative z-10'>PUSINGAN SETERUSNYA ➡️</span>";
+                    nextBtn.classList.replace('bg-yellow-600', 'bg-green-600');
+                    nextBtn.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700');
+                    nextBtn.classList.replace('shadow-[0_0_10px_yellow]', 'shadow-[0_0_10px_green]');
+                }
+            }
+            missedRevealed = false; 
+            updatePotDisplay();
+            renderBoard(roundData);
+        }
+
+        function renderBoard(roundData) {
+            const board = document.getElementById('board');
+            board.innerHTML = ''; 
+            
+            const totalSlots = Math.max(roundData.answers.length, roundData.answers.length % 2 === 0 ? roundData.answers.length : roundData.answers.length + 1);
+
+            for (let i = 0; i < totalSlots; i++) {
+                if (i < roundData.answers.length) {
+                    const ans = roundData.answers[i];
+                    board.innerHTML += `
+                        <div class="flip-card" id="card-${i}" onclick="revealAnswer(${i})">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <span class="w-12 h-12 border-2 border-blue-400 rounded-full flex items-center justify-center bg-blue-900 text-white text-3xl font-extrabold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
+                                        ${i + 1}
+                                    </span>
+                                </div>
+                                <div class="flip-card-back">
+                                    <div class="answer-text">${ans.text}</div>
+                                    <div class="answer-score">${ans.points}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    board.innerHTML += `
+                        <div class="flip-card" style="cursor: default;">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front" style="background: transparent; border-color: rgba(50, 130, 184, 0.3);"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function revealAnswer(index) {
+            if (!gameData[currentRound] || !gameData[currentRound].answers) return;
+            if (revealedAnswers[index]) return; 
+            
+            const card = document.getElementById(`card-${index}`);
+            card.classList.add('revealed');
+            
+            if (activeTeam === 1) card.classList.add('team1-ans');
+            else card.classList.add('team2-ans');
+            
+            revealedAnswers[index] = true;
+            const points = gameData[currentRound].answers[index].points;
+            pot += points;
+            updatePotDisplay();
+
+            if (activeTeam === 1) team1Score += points;
+            else team2Score += points;
+            updateScores();
+            
+            playDingSound();
+            checkWinner();
+        }
+
+        function checkWinner() {
+            const allRevealed = revealedAnswers.length > 0 && revealedAnswers.every(ans => ans === true);
+            if (allRevealed && !isCountingDown) startNextRoundTimer(8);
+        }
+
+        function updatePotDisplay() {
+            document.getElementById('round-pot').innerText = pot;
+        }
+
+        function updateScores() {
+            document.getElementById('team1-score').innerText = team1Score;
+            document.getElementById('team2-score').innerText = team2Score;
+        }
+
+        function updateStrikeUI() {
+            const t1Strikes = document.getElementById('team1-strikes');
+            const t2Strikes = document.getElementById('team2-strikes');
+            if (t1Strikes && t2Strikes) {
+                let strikeText = '';
+                for (let i = 0; i < currentStrikes; i++) strikeText += 'X ';
+                
+                t1Strikes.innerText = activeTeam === 1 ? strikeText.trim() : '';
+                t2Strikes.innerText = activeTeam === 2 ? strikeText.trim() : '';
+            }
+        }
+
+        function showStrike() {
+            currentStrikes++;
+            if (currentStrikes > 3) currentStrikes = 3;
+            updateStrikeUI();
+
+            const overlay = document.getElementById('strike-overlay');
+            const container = document.getElementById('strike-container');
+            
+            container.innerHTML = '';
+            for(let i = 0; i < currentStrikes; i++) {
+                container.innerHTML += '<div class="strike-x">X</div>';
+            }
+
+            overlay.classList.add('show');
+            playBuzzerSound();
+            
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                if (currentStrikes >= 3) {
+                    activeTeam = activeTeam === 1 ? 2 : 1;
+                    currentStrikes = 0;
+                    updateActiveTeamUI();
+                    updateStrikeUI();
+                }
+            }, 1500);
+        }
+
+        function startNextRoundTimer(duration) {
+            const nextBtn = document.getElementById('btn-next-round');
+            isCountingDown = true;
+            let timer = duration;
+            
+            nextBtn.style.setProperty('--timer-dur', duration + 's');
+            nextBtn.classList.add('timeout-btn');
+            
+            const isLastRound = currentRound >= gameData.length - 1;
+            let actionText = isLastRound ? "Tamat" : "Beralih";
+            nextBtn.innerHTML = `<span class="relative z-10">${actionText} dalam ${timer}s ⏳ (Langkau)</span>`;
+            
+            countdownInterval = setInterval(() => {
+                timer--;
+                if (timer > 0) {
+                    nextBtn.innerHTML = `<span class="relative z-10">${actionText} dalam ${timer}s ⏳ (Langkau)</span>`;
+                } else {
+                    clearInterval(countdownInterval);
+                    isCountingDown = false;
+                    nextBtn.classList.remove('timeout-btn');
+                    executeNextRound();
+                }
+            }, 1000);
+        }
+
+        function nextRound() {
+            const nextBtn = document.getElementById('btn-next-round');
+            if (isCountingDown) {
+                clearInterval(countdownInterval);
+                isCountingDown = false;
+                nextBtn.classList.remove('timeout-btn');
+                executeNextRound();
+                return;
+            }
+
+            let hasUnrevealed = false;
+            if (gameData[currentRound] && gameData[currentRound].answers) {
+                for (let i = 0; i < gameData[currentRound].answers.length; i++) {
+                    if (!revealedAnswers[i]) hasUnrevealed = true;
+                }
+            }
+
+            if (hasUnrevealed && !missedRevealed) {
+                for (let i = 0; i < gameData[currentRound].answers.length; i++) {
+                    if (!revealedAnswers[i]) {
+                        const card = document.getElementById(`card-${i}`);
+                        if (card) card.classList.add('revealed', 'missed');
+                    }
+                }
+                missedRevealed = true;
+            }
+            startNextRoundTimer(5);
+        }
+
+        function executeNextRound() {
+            if (currentRound >= gameData.length - 1) {
+                showWinnerPopup(); 
+                return;
+            }
+            currentRound++;
+            loadRound(currentRound);
+        }
+
+        function showWinnerPopup() {
+            const winnerOverlay = document.getElementById('winner-overlay');
+            const winnerNameDisplay = document.getElementById('winner-name-display');
+            
+            const bgmAudio = document.getElementById('bgm-audio');
+            bgmAudio.pause();
+            isBgmPlaying = false;
+            
+            const btn = document.getElementById('bgm-btn');
+            if (btn) {
+                btn.innerText = "🔇 BGM (OFF)";
+                btn.classList.replace('bg-blue-600', 'bg-gray-600');
+                btn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-700');
+                btn.classList.replace('shadow-[0_0_10px_blue]', 'shadow-[0_0_10px_gray]');
+            }
+
+            const t1Name = document.getElementById('team1-name').innerText;
+            const t2Name = document.getElementById('team2-name').innerText;
+            let winnerText = "";
+            let winningScore = 0;
+            
+            if (team1Score > team2Score) {
+                winnerText = "JUARA: " + t1Name.toUpperCase();
+                winningScore = team1Score;
+            } else if (team2Score > team1Score) {
+                winnerText = "JUARA: " + t2Name.toUpperCase();
+                winningScore = team2Score;
+            } else {
+                winnerText = "KEDUDUKAN SERI!";
+                winningScore = team1Score;
+            }
+            
+            winnerNameDisplay.innerText = winnerText;
+            document.getElementById('winner-score-display').innerText = "Markah Keseluruhan: " + winningScore;
+            
+            const victoryAudio = document.getElementById('victory-audio');
+            if (customVictoryUrl !== '' || customVictoryFileUrl !== '') {
+                victoryAudio.loop = false;
+                victoryAudio.currentTime = 0;
+                victoryAudio.play().catch(e => console.warn(e));
+            }
+            
+            winnerOverlay.classList.remove('hidden');
+            winnerOverlay.classList.add('flex');
+            startFireworks();
+        }
+
+        function closeWinnerPopup() {
+            const winnerOverlay = document.getElementById('winner-overlay');
+            winnerOverlay.classList.remove('flex');
+            winnerOverlay.classList.add('hidden');
+            
+            const victoryAudio = document.getElementById('victory-audio');
+            victoryAudio.pause();
+            victoryAudio.currentTime = 0;
+            stopFireworks();
+        }
+
+        // --- Animasi Bunga Api ---
+        let fwCanvas, fwCtx, fireworks = [], fwAnimationId;
+
+        function startFireworks() {
+            fwCanvas = document.getElementById('fireworks-canvas');
+            if (!fwCanvas) return;
+            fwCtx = fwCanvas.getContext('2d');
+            resizeFireworks();
+            window.addEventListener('resize', resizeFireworks);
+            fireworks = [];
+            fwLoop();
+        }
+
+        function resizeFireworks() {
+            if (!fwCanvas) return;
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+        }
+
+        function stopFireworks() {
+            if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            window.removeEventListener('resize', resizeFireworks);
+            if (fwCtx && fwCanvas) fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        }
+
+        function createExplosion(x, y) {
+            const count = 60 + Math.random() * 40;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                fireworks.push({
+                    x: x, y: y,
+                    vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 3 + 1,
+                    color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                    alpha: 1, decay: Math.random() * 0.015 + 0.005
+                });
+            }
+        }
+
+        function fwLoop() {
+            fwAnimationId = requestAnimationFrame(fwLoop);
+            fwCtx.globalCompositeOperation = 'destination-out';
+            fwCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+            fwCtx.globalCompositeOperation = 'lighter';
+
+            if (Math.random() < 0.08) { 
+                createExplosion(Math.random() * fwCanvas.width, Math.random() * (fwCanvas.height * 0.6));
+            }
+
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                let p = fireworks[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.05; 
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    fireworks.splice(i, 1);
+                    continue;
+                }
+
+                fwCtx.beginPath();
+                fwCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                fwCtx.fillStyle = p.color;
+                fwCtx.globalAlpha = p.alpha;
+                fwCtx.fill();
+            }
+            fwCtx.globalAlpha = 1;
+        }
+
+        let isAudioStarted = false;
+        let isBgmPlaying = true;
+
+        const dingSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 1 }
+        }).toDestination();
+        dingSynth.volume.value = -5;
+
+        const buzzerSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sawtooth" },
+            envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 0.5 }
+        }).toDestination();
+        buzzerSynth.volume.value = 2; 
+
+        async function startAudio() {
+            await Tone.start();
+            isAudioStarted = true;
+            document.getElementById('audio-overlay').classList.add('hidden');
+            document.getElementById('bgm-btn').classList.remove('hidden');
+
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (isBgmPlaying && (customBgmUrl !== '' || customBgmFileUrl !== '')) {
+                bgmAudio.play().catch(e => console.warn("Audio tidak dapat dimainkan", e));
+            }
+        }
+
+        function playDingSound() {
+            if (!isAudioStarted) return;
+            dingSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+        }
+
+        function playBuzzerSound() {
+            if (!isAudioStarted) return;
+            buzzerSynth.triggerAttackRelease(["C2", "C#2", "D2"], "4n");
+        }
+
+        function toggleBGM() {
+            if (!isAudioStarted) return;
+            const btn = document.getElementById('bgm-btn');
+            const bgmAudio = document.getElementById('bgm-audio');
+
+            if (isBgmPlaying) {
+                bgmAudio.pause();
+                btn.innerText = "🔇 BGM (OFF)";
+                btn.classList.replace('bg-blue-600', 'bg-gray-600');
+                btn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-700');
+                btn.classList.replace('shadow-[0_0_10px_blue]', 'shadow-[0_0_10px_gray]');
+            } else {
+                if (customBgmUrl !== '' || customBgmFileUrl !== '') {
+                    bgmAudio.play().catch(e => console.warn(e));
+                } else {
+                    showAlert("🎵 Sila masukkan URL atau muat naik fail audio Muzik Latar di ruangan Tetapan terlebih dahulu.");
+                }
+                btn.innerText = "🔊 BGM (ON)";
+                btn.classList.replace('bg-gray-600', 'bg-blue-600');
+                btn.classList.replace('hover:bg-gray-700', 'hover:bg-blue-700');
+                btn.classList.replace('shadow-[0_0_10px_gray]', 'shadow-[0_0_10px_blue]');
+            }
+            isBgmPlaying = !isBgmPlaying;
+        }
+
+        // --- Jalan Pintas Papan Kekunci (Keyboard Shortcuts) ---
+        document.addEventListener('keydown', function(event) {
+            const activeElement = document.activeElement;
+            const isInput = activeElement.tagName === 'INPUT' || 
+                            activeElement.tagName === 'TEXTAREA' || 
+                            activeElement.isContentEditable;
+            
+            if (isInput) return; // Jangan jalankan jika sedang menaip nama/markah
+
+            if (event.key >= '1' && event.key <= '8') {
+                const index = parseInt(event.key) - 1;
+                if (gameData[currentRound] && gameData[currentRound].answers && index < gameData[currentRound].answers.length) {
+                    revealAnswer(index);
+                }
+            }
+
+            if (event.key.toLowerCase() === 'x') showStrike();
+        });
+
+        // Mula pada Window Load
+        window.addEventListener('firebaseReady', initGameWrapper);
+        window.onload = () => {
+            // Fallback jika firebase lambat atau gagal (tunggu 2 saat)
+            setTimeout(initGameWrapper, 2000);
+        };
+
+    </script>
+</body>
+</html>
