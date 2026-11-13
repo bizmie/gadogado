@@ -1504,17 +1504,23 @@
         });
 
         // Mula pada Window Load
-        window.onload = () => {
-            // Sela masa 3 saat (Loading Screen) sebelum masuk ke aplikasi
-            setTimeout(() => {
-                const overlay = document.getElementById('loading-overlay');
-                if (overlay) {
-                    overlay.style.opacity = '0';
-                    // Hilangkan terus elemen selepas animasi lutsinar selesai
-                    setTimeout(() => overlay.classList.add('hidden'), 500); 
-                }
-                initGameWrapper();
-            }, 3000);
+        window.onload = async () => {
+            // Mulakan proses memuat turun data dari Firebase / Lokal dengan segera
+            const initPromise = initGameWrapper();
+            
+            // Sela masa minimum 3 saat untuk animasi loading
+            const timerPromise = new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Tunggu sehingga masa tamat DAN data siap diproses di belakang tabir
+            await Promise.all([initPromise, timerPromise]);
+
+            // Hilangkan skrin pemuatan (hanya selepas tajuk selesai dikemas kini)
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                // Hilangkan terus elemen selepas animasi lutsinar selesai
+                setTimeout(() => overlay.classList.add('hidden'), 500); 
+            }
         };
 
     </script>
