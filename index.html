@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Feud Malaysia</title>
+    <title>Gado-Gado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -210,6 +210,17 @@
             100% { transform: scale(1); }
         }
 
+        @keyframes rgbPulseText {
+            0% { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.9); }
+            33% { color: #33ff33; text-shadow: 0 0 25px rgba(51,255,51,0.9); }
+            66% { color: #3333ff; text-shadow: 0 0 25px rgba(51,51,255,0.9); }
+            100% { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.9); }
+        }
+
+        .text-rgb-pulse {
+            animation: popInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, rgbPulseText 3s linear infinite !important;
+        }
+
         /* Jawapan Terlepas (Missed) - Kelabu dan Pink */
         .flip-card.revealed.missed .flip-card-back {
             background: linear-gradient(to bottom, #444444, #222222);
@@ -267,6 +278,35 @@
             to { width: 0%; }
         }
 
+        /* Timer Soalan */
+        .q-timer-container {
+            width: 100%;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
+            position: relative;
+        }
+        .q-timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+            background-size: 200% 100%;
+            transition: width 1s linear;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.4);
+        }
+        .q-timer-bar.blink {
+            animation: timerBlink 0.5s infinite alternate;
+            background: #ef4444;
+            box-shadow: 0 0 20px #ef4444;
+        }
+        @keyframes timerBlink {
+            from { opacity: 1; }
+            to { opacity: 0.3; }
+        }
+
         /* Animasi Loading Spinner */
         .loader-spinner {
             width: 80px;
@@ -302,36 +342,44 @@
     </div>
 
     <!-- Header / Scoreboard -->
-    <header class="w-full flex justify-between items-center p-6 bg-black bg-opacity-40 shadow-lg">
-        <!-- Team 1 (Biru Gelap) -->
-        <div id="team1-container" class="text-center w-1/3 team-container active-team bg-blue-800 bg-opacity-60" onclick="setTurn(1)" title="Klik untuk tukar giliran secara manual">
-            <div id="team1-strikes" class="text-red-500 text-4xl font-bold h-10 tracking-[0.2em]" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
-            <h2 id="team1-name" class="text-3xl font-bold text-blue-100 editable uppercase tracking-wider drop-shadow-md" contenteditable="true" onclick="event.stopPropagation()">Kumpulan 1</h2>
-            <div id="team1-score" class="text-6xl font-bold text-white mt-2 drop-shadow-lg">0</div>
-        </div>
+    <header class="w-full bg-black bg-opacity-40 shadow-lg flex justify-center">
+        <div class="w-full max-w-5xl flex justify-between items-center p-4 md:p-6">
+            <!-- Team 1 (Biru Gelap) -->
+            <div id="team1-container" class="text-center w-1/3 team-container active-team bg-blue-800 bg-opacity-60" onclick="setTurn(1)" title="Klik untuk tukar giliran secara manual">
+                <div id="team1-strikes" class="text-red-500 text-4xl font-bold h-10 tracking-[0.2em]" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
+                <h2 id="team1-name" class="text-3xl font-bold text-blue-100 editable uppercase tracking-wider drop-shadow-md" contenteditable="true" onclick="event.stopPropagation()">Kumpulan 1</h2>
+                <div id="team1-score" class="text-6xl font-bold text-white mt-2 drop-shadow-lg">0</div>
+            </div>
 
-        <!-- Pot / Total Round Score -->
-        <div class="text-center w-1/3 flex flex-col items-center">
-            <img src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5a/Family_Feud_logo.svg/300px-Family_Feud_logo.svg.png" alt="Family Feud" class="h-20 mb-2 filter drop-shadow-lg opacity-80" onerror="this.style.display='none'">
-            <h1 class="text-2xl font-bold text-yellow-400 mb-1">MARKAH PUSINGAN</h1>
-            <div id="round-pot" class="text-5xl font-bold bg-white text-black px-6 py-2 border-4 border-yellow-400 rounded-lg inline-block shadow-[0_0_15px_rgba(255,180,0,0.6)]">0</div>
-        </div>
+            <!-- Pot / Total Round Score -->
+            <div class="text-center w-1/3 flex flex-col items-center">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/5/5a/Family_Feud_logo.svg/300px-Family_Feud_logo.svg.png" alt="Family Feud" class="h-20 mb-2 filter drop-shadow-lg opacity-80" onerror="this.style.display='none'">
+                <h1 class="text-2xl font-bold text-yellow-400 mb-1">MARKAH PUSINGAN</h1>
+                <div id="round-pot" class="text-5xl font-bold bg-white text-black px-6 py-2 border-4 border-yellow-400 rounded-lg inline-block shadow-[0_0_15px_rgba(255,180,0,0.6)]">0</div>
+            </div>
 
-        <!-- Team 2 (Oren Gelap) -->
-        <div id="team2-container" class="text-center w-1/3 team-container bg-orange-800 bg-opacity-60" onclick="setTurn(2)" title="Klik untuk tukar giliran secara manual">
-            <div id="team2-strikes" class="text-red-500 text-4xl font-bold h-10 tracking-[0.2em]" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
-            <h2 id="team2-name" class="text-3xl font-bold text-orange-100 editable uppercase tracking-wider drop-shadow-md" contenteditable="true" onclick="event.stopPropagation()">Kumpulan 2</h2>
-            <div id="team2-score" class="text-6xl font-bold text-white mt-2 drop-shadow-lg">0</div>
+            <!-- Team 2 (Oren Gelap) -->
+            <div id="team2-container" class="text-center w-1/3 team-container bg-orange-800 bg-opacity-60" onclick="setTurn(2)" title="Klik untuk tukar giliran secara manual">
+                <div id="team2-strikes" class="text-red-500 text-4xl font-bold h-10 tracking-[0.2em]" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
+                <h2 id="team2-name" class="text-3xl font-bold text-orange-100 editable uppercase tracking-wider drop-shadow-md" contenteditable="true" onclick="event.stopPropagation()">Kumpulan 2</h2>
+                <div id="team2-score" class="text-6xl font-bold text-white mt-2 drop-shadow-lg">0</div>
+            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow flex flex-col items-center justify-center p-4">
+    <main class="flex-grow w-full max-w-5xl mx-auto flex flex-col items-center justify-center p-4">
         
         <!-- Question Text -->
-        <div class="mb-6 text-center max-w-4xl">
+        <div class="mb-6 text-center max-w-4xl w-full px-4">
             <h3 class="text-xl text-gray-300 uppercase tracking-widest mb-1">Pusingan <span id="round-number">1</span></h3>
             <h2 id="question-text" class="text-3xl md:text-4xl font-semibold text-yellow-100 mb-2 drop-shadow-md"></h2>
+            
+            <!-- Question Timer Bar -->
+            <div class="q-timer-container max-w-2xl mx-auto mt-4">
+                <div id="q-timer-bar" class="q-timer-bar"></div>
+            </div>
+            <div id="q-timer-text" class="text-sm font-bold mt-1 text-gray-300 tracking-wider">MASA: 30s</div>
         </div>
 
         <!-- Game Board Grid -->
@@ -343,24 +391,26 @@
     </main>
 
     <!-- Host Controls -->
-    <footer class="w-full bg-black bg-opacity-60 p-4 border-t border-gray-700 flex flex-col items-center relative z-10">
-        <div class="flex space-x-4 mb-4">
-            <button onclick="showStrike()" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_red] transition transform hover:scale-105">
-                ❌ STRIKE (SALAH)
-            </button>
-            <button onclick="nextRound()" id="btn-next-round" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_green] transition transform hover:scale-105">
-                PUSINGAN SETERUSNYA ➡️
-            </button>
-            <button onclick="toggleBGM()" id="bgm-btn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_blue] transition transform hover:scale-105 hidden">
-                🔊 BGM (ON)
-            </button>
-        </div>
+    <footer class="w-full bg-black bg-opacity-60 border-t border-gray-700 flex justify-center relative z-10">
+        <div class="w-full max-w-5xl p-4 flex flex-col items-center">
+            <div class="flex space-x-4 mb-4">
+                <button onclick="showStrike()" class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_red] transition transform hover:scale-105">
+                    ❌ STRIKE (SALAH)
+                </button>
+                <button onclick="nextRound()" id="btn-next-round" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_green] transition transform hover:scale-105">
+                    PUSINGAN SETERUSNYA ➡️
+                </button>
+                <button onclick="toggleBGM()" id="bgm-btn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-xl shadow-[0_0_10px_blue] transition transform hover:scale-105 hidden">
+                    🔊 BGM (ON)
+                </button>
+            </div>
 
-        <!-- Host Settings Button -->
-        <div class="w-full max-w-4xl text-center">
-            <button onclick="openSettings()" class="text-yellow-400 hover:text-yellow-300 text-sm bg-gray-800 border border-yellow-600 px-3 py-1 rounded shadow-[0_0_5px_rgba(255,180,0,0.5)] transition transform hover:scale-105">
-                ⚙️ Tetapan
-            </button>
+            <!-- Host Settings Button -->
+            <div class="w-full max-w-4xl text-center">
+                <button onclick="openSettings()" class="text-yellow-400 hover:text-yellow-300 text-sm bg-gray-800 border border-yellow-600 px-3 py-1 rounded shadow-[0_0_5px_rgba(255,180,0,0.5)] transition transform hover:scale-105">
+                    ⚙️ Tetapan
+                </button>
+            </div>
         </div>
     </footer>
 
@@ -376,10 +426,10 @@
         <canvas id="fireworks-canvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
         <div class="relative z-10 flex flex-col items-center justify-center">
             <h2 class="text-4xl text-white mb-2 font-semibold tracking-widest uppercase shadow-black drop-shadow-md">Tahniah!</h2>
-            <h1 id="winner-name-display" class="text-7xl md:text-9xl font-bold text-yellow-400 mb-4 uppercase tracking-widest winner-text drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]">JUARA</h1>
+            <h1 id="winner-name-display" class="text-7xl md:text-9xl font-bold mb-4 uppercase tracking-widest winner-text text-rgb-pulse">JUARA</h1>
             <p id="winner-score-display" class="text-3xl md:text-5xl text-white mb-8 font-bold tracking-wider drop-shadow-md bg-black bg-opacity-60 px-8 py-3 rounded-lg border-2 border-yellow-400 shadow-[0_0_15px_rgba(255,180,0,0.5)]">Markah: 0</p>
             <button onclick="closeWinnerPopup()" class="mt-10 px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full text-xl transition transform hover:scale-105 border border-gray-500 shadow-lg relative z-20">
-                Tutup Paparan
+                Tamat
             </button>
         </div>
     </div>
@@ -395,7 +445,7 @@
                 <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
                         <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v1.0</span>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.0</span>
                     </div>
                     <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
                 </div>
@@ -411,7 +461,7 @@
                 </div>
 
                 <div class="text-sm text-gray-200 mb-4 bg-blue-900 p-3 rounded border border-blue-700">
-                    ℹ️ Anda boleh menetapkan <strong>5 pusingan soalan</strong> dan sehingga <strong>8 jawapan</strong>. Jawapan akan disusun mengikut markah tertinggi secara automatik.
+                    ℹ️ Anda boleh menetapkan <strong>5 pusingan soalan</strong> dan sehingga <strong>8 jawapan</strong>. Markah telah <strong>dikunci secara seragam</strong> (50, 40, 30...), jadi anda hanya perlu menaip teks jawapan.
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -432,6 +482,15 @@
                                 <option value="classic">Biru Klasik (Lalaian)</option>
                                 <option value="neon">Ungu Neon (Misteri)</option>
                                 <option value="emerald">Hijau Zamrud (Alam)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-yellow-400 font-bold text-lg mb-2">🔢 Jumlah Pusingan</label>
+                            <select id="setting-total-rounds" onchange="updateRoundVisibility()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                                <option value="2">2 Pusingan</option>
+                                <option value="3">3 Pusingan</option>
+                                <option value="4">4 Pusingan</option>
+                                <option value="5" selected>5 Pusingan</option>
                             </select>
                         </div>
                     </div>
@@ -459,6 +518,28 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Pengurusan Preset Soalan -->
+                <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col gap-4 mb-8">
+                    <label class="block text-yellow-400 font-bold text-lg">📁 Pengurusan Preset Soalan</label>
+                    <div class="flex flex-col md:flex-row gap-4 items-end">
+                        <div class="w-full md:w-1/3">
+                            <span class="text-sm font-semibold text-gray-300 block mb-1">Pilih Slot Preset:</span>
+                            <select id="preset-selector" onchange="onPresetSelect()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                            </select>
+                        </div>
+                        <div class="w-full md:w-1/3">
+                            <span class="text-sm font-semibold text-gray-300 block mb-1">Nama Preset:</span>
+                            <input type="text" id="preset-name" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400">
+                        </div>
+                        <div class="w-full md:w-1/3 flex flex-wrap gap-2">
+                            <button type="button" onclick="loadSelectedPreset()" class="flex-1 px-2 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white font-semibold transition shadow-[0_0_5px_blue]">Muat</button>
+                            <button type="button" onclick="saveToSelectedPreset()" class="flex-1 px-2 py-2 bg-green-600 hover:bg-green-500 rounded text-white font-semibold transition shadow-[0_0_5px_green]">Simpan</button>
+                            <button type="button" id="btn-delete-preset" onclick="deleteSelectedPreset()" class="flex-1 px-2 py-2 bg-red-600 hover:bg-red-500 rounded text-white font-semibold transition shadow-[0_0_5px_red]">Padam</button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-[-5px]">Pilih slot untuk memuat turun atau menyimpan set 5 soalan ini secara serentak (Diselaras ke Firebase Cloud).</p>
                 </div>
 
                 <div id="settings-form-container" class="space-y-8">
@@ -628,6 +709,15 @@
             }
         ];
 
+        let defaultPresets = [
+            { name: "Preset 1 (Lalai)", data: JSON.parse(JSON.stringify(defaultGameData)) },
+            { name: "Preset 2 (Kosong)", data: null },
+            { name: "Preset 3 (Kosong)", data: null },
+            { name: "Preset 4 (Kosong)", data: null },
+            { name: "Preset 5 (Kosong)", data: null }
+        ];
+        let appPresets = JSON.parse(JSON.stringify(defaultPresets));
+
         let gameData = [];
         const STORAGE_KEY = 'familyFeudDataMY';
 
@@ -647,6 +737,14 @@
         let missedRevealed = false; 
         let isCountingDown = false; 
         let countdownInterval = null; 
+        let isGamePaused = false;
+        let totalRounds = 5;
+
+        // Variable Timer Soalan
+        let questionTimerInterval = null;
+        let questionTimeLeft = 30;
+        const QUESTION_TIME_LIMIT = 30;
+        let isGameOver = false;
 
         // --- Custom Modal System ---
         let currentConfirmCallback = null;
@@ -678,6 +776,47 @@
         function closeCustomModal() {
             document.getElementById('custom-modal').classList.add('hidden');
             currentConfirmCallback = null;
+        }
+
+        // --- Fungsi Timer Soalan ---
+        function startQuestionTimer() {
+            if (isGameOver) return;
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+            questionTimeLeft = QUESTION_TIME_LIMIT;
+            updateQTimerUI();
+
+            questionTimerInterval = setInterval(() => {
+                if (isCountingDown || isGamePaused) return; // Berhenti jika sedang loading next round atau tetapan dibuka
+                questionTimeLeft--;
+                
+                if (questionTimeLeft <= 0) {
+                    questionTimeLeft = 0;
+                    clearInterval(questionTimerInterval);
+                    playBuzzerSound();
+                    showStrike(); // Beri strike automatik jika masa tamat
+                }
+                updateQTimerUI();
+            }, 1000);
+        }
+
+        function updateQTimerUI() {
+            const bar = document.getElementById('q-timer-bar');
+            const text = document.getElementById('q-timer-text');
+            if (!bar || !text) return;
+
+            const percentage = (questionTimeLeft / QUESTION_TIME_LIMIT) * 100;
+            bar.style.width = percentage + '%';
+            text.innerText = `MASA: ${questionTimeLeft}s`;
+
+            if (questionTimeLeft <= 10) {
+                bar.classList.add('blink');
+                text.classList.add('text-red-400');
+                text.classList.remove('text-gray-300');
+            } else {
+                bar.classList.remove('blink');
+                text.classList.remove('text-red-400');
+                text.classList.add('text-gray-300');
+            }
         }
 
         let gameInitialized = false;
@@ -719,12 +858,16 @@
             document.getElementById('team1-name').innerText = data.t1Name || "Kumpulan 1";
             document.getElementById('team2-name').innerText = data.t2Name || "Kumpulan 2";
             
+            totalRounds = data.totalRounds || 5;
+            appPresets = data.presets || JSON.parse(JSON.stringify(defaultPresets));
+
             gameData = data.gameData || JSON.parse(JSON.stringify(defaultGameData));
             while (gameData.length < 5) gameData.push({ question: "", answers: [] });
             gameData = gameData.slice(0, 5); 
         }
 
         function initGame() {
+            isGameOver = false;
             currentRound = 0;
             team1Score = 0;
             team2Score = 0;
@@ -754,6 +897,10 @@
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
+            }
+            if (questionTimerInterval) {
+                clearInterval(questionTimerInterval);
+                questionTimerInterval = null;
             }
             isCountingDown = false;
             const nextBtn = document.getElementById('btn-next-round');
@@ -796,6 +943,8 @@
                 localStorage.removeItem('familyFeudVictoryUrl_MY');
                 localStorage.removeItem('familyFeudT1Name_MY');
                 localStorage.removeItem('familyFeudT2Name_MY');
+                localStorage.removeItem('familyFeudPresets_MY');
+                localStorage.removeItem('familyFeudTotalRounds_MY');
                 
                 loadDataFromStorage();
                 
@@ -807,7 +956,9 @@
                         victoryUrl: '',
                         t1Name: "Kumpulan 1",
                         t2Name: "Kumpulan 2",
-                        gameData: gameData
+                        totalRounds: 5,
+                        gameData: gameData,
+                        presets: appPresets
                     });
                 }
 
@@ -818,10 +969,12 @@
         }
 
         function setTurn(teamNum) {
+            if (isGameOver) return;
             activeTeam = teamNum;
             currentStrikes = 0;
             updateActiveTeamUI();
             updateStrikeUI();
+            startQuestionTimer();
         }
 
         function updateActiveTeamUI() {
@@ -864,6 +1017,20 @@
             const savedT2 = localStorage.getItem('familyFeudT2Name_MY');
             if (savedT2) document.getElementById('team2-name').innerText = savedT2;
 
+            const savedTotalRounds = localStorage.getItem('familyFeudTotalRounds_MY');
+            if (savedTotalRounds) totalRounds = parseInt(savedTotalRounds);
+
+            const savedPresets = localStorage.getItem('familyFeudPresets_MY');
+            if (savedPresets) {
+                try {
+                    appPresets = JSON.parse(savedPresets);
+                } catch(e) {
+                    appPresets = JSON.parse(JSON.stringify(defaultPresets));
+                }
+            } else {
+                appPresets = JSON.parse(JSON.stringify(defaultPresets));
+            }
+
             const savedData = localStorage.getItem(STORAGE_KEY);
             if (savedData) {
                 try {
@@ -881,6 +1048,8 @@
         }
 
         function openSettings() {
+            isGamePaused = true; // Pause permainan
+
             const currentTitle = document.getElementById('game-title-display').innerHTML.replace(/<br\s*[\/]?>/gi, '\n');
             document.getElementById('setting-game-title').value = currentTitle;
 
@@ -894,27 +1063,141 @@
             document.getElementById('setting-t2-name').value = document.getElementById('team2-name').innerText;
             
             document.getElementById('setting-theme').value = currentTheme;
+            document.getElementById('setting-total-rounds').value = totalRounds;
 
+            refreshPresetDropdown();
+            document.getElementById('preset-selector').value = 0; 
+            onPresetSelect();
+
+            renderSettingsForm(gameData);
+            document.getElementById('settings-modal').classList.remove('hidden');
+        }
+
+        // --- Logik Pengurusan Preset ---
+        function refreshPresetDropdown() {
+            const selector = document.getElementById('preset-selector');
+            selector.innerHTML = '';
+            appPresets.forEach((p, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.text = p.name;
+                selector.appendChild(opt);
+            });
+        }
+
+        function onPresetSelect() {
+            const idx = document.getElementById('preset-selector').value;
+            document.getElementById('preset-name').value = appPresets[idx].name;
+            const delBtn = document.getElementById('btn-delete-preset');
+            
+            if (idx == 0) {
+                delBtn.disabled = true;
+                delBtn.classList.replace('bg-red-600', 'bg-gray-600');
+                delBtn.classList.replace('hover:bg-red-500', 'hover:bg-gray-600');
+                delBtn.classList.replace('shadow-[0_0_5px_red]', 'shadow-none');
+                delBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                delBtn.disabled = false;
+                delBtn.classList.replace('bg-gray-600', 'bg-red-600');
+                delBtn.classList.replace('hover:bg-gray-600', 'hover:bg-red-500');
+                delBtn.classList.replace('shadow-none', 'shadow-[0_0_5px_red]');
+                delBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function loadSelectedPreset() {
+            const idx = document.getElementById('preset-selector').value;
+            const preset = appPresets[idx];
+            if (!preset.data) {
+                showAlert("Slot preset ini masih kosong. Sila simpan soalan terlebih dahulu.");
+                return;
+            }
+            renderSettingsForm(preset.data);
+            showAlert(`Soalan dari '${preset.name}' berjaya dimuatkan ke dalam borang di bawah.\n\nSila klik butang 'Simpan & Mula Semula' untuk mula menggunakannya dalam permainan.`);
+        }
+
+        function saveToSelectedPreset() {
+            const idx = document.getElementById('preset-selector').value;
+            const newName = document.getElementById('preset-name').value.trim() || `Preset ${parseInt(idx) + 1}`;
+            const newData = extractFormData();
+
+            appPresets[idx].name = newName;
+            appPresets[idx].data = newData;
+
+            savePresetsToStorage();
+            refreshPresetDropdown();
+            document.getElementById('preset-selector').value = idx;
+            onPresetSelect();
+            showAlert(`✅ Set soalan terkini berjaya disimpan ke dalam slot '${newName}'!`);
+        }
+
+        function deleteSelectedPreset() {
+            const idx = document.getElementById('preset-selector').value;
+            if (idx == 0) return; // Lindungi preset default
+            
+            showConfirm(`Adakah anda pasti mahu memadamkan data dalam '${appPresets[idx].name}'?`, () => {
+                appPresets[idx].name = `Preset ${parseInt(idx) + 1} (Kosong)`;
+                appPresets[idx].data = null;
+                savePresetsToStorage();
+                refreshPresetDropdown();
+                document.getElementById('preset-selector').value = idx;
+                onPresetSelect();
+                showAlert("✅ Preset berjaya dipadamkan (dikosongkan).");
+            });
+        }
+
+        function savePresetsToStorage() {
+            localStorage.setItem('familyFeudPresets_MY', JSON.stringify(appPresets));
+            if (window.saveToCloud) {
+                window.loadFromCloud().then(cloudData => {
+                    let dataToSave = cloudData || {};
+                    dataToSave.presets = appPresets;
+                    window.saveToCloud(dataToSave);
+                });
+            }
+        }
+
+        function extractFormData() {
+            const FIXED_POINTS = [50, 40, 30, 20, 15, 10, 5, 2];
+            const newData = [];
+            for (let i = 0; i < 5; i++) {
+                const qText = document.getElementById(`q${i}-text`).value.trim();
+                const answers = [];
+                for (let j = 0; j < 8; j++) {
+                    const aText = document.getElementById(`q${i}-a${j}-text`).value.trim();
+                    if (aText !== "") answers.push({ text: aText, points: FIXED_POINTS[j] });
+                }
+                answers.sort((a, b) => b.points - a.points);
+                newData.push({ question: qText || `Soalan ${i + 1} (Tiada Tajuk)`, answers: answers });
+            }
+            while(newData.length < 5) newData.push({ question: "", answers: [] });
+            return newData;
+        }
+
+        function renderSettingsForm(dataToRender) {
             const container = document.getElementById('settings-form-container');
             container.innerHTML = ''; 
+            
+            const FIXED_POINTS = [50, 40, 30, 20, 15, 10, 5, 2];
 
             for (let i = 0; i < 5; i++) {
-                const round = gameData[i];
+                const round = dataToRender[i] || { question: "", answers: [] };
                 let answersHtml = '';
                 
                 for (let j = 0; j < 8; j++) {
-                    const ans = round.answers[j] || { text: "", points: "" };
+                    const ans = round.answers[j] || { text: "" };
+                    const pt = FIXED_POINTS[j];
                     answersHtml += `
                         <div class="flex items-center space-x-2">
                             <span class="text-gray-400 w-6 text-right font-bold">${j + 1}.</span>
                             <input type="text" id="q${i}-a${j}-text" value="${ans.text}" placeholder="Teks Jawapan" class="flex-grow bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white focus:outline-none focus:border-yellow-400 focus:bg-gray-600 transition">
-                            <input type="number" id="q${i}-a${j}-points" value="${ans.points}" placeholder="Mata" min="0" max="100" class="w-20 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-center focus:outline-none focus:border-yellow-400 focus:bg-gray-600 transition">
+                            <input type="number" id="q${i}-a${j}-points" value="${pt}" class="w-16 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-500 text-center cursor-not-allowed opacity-80" readonly title="Markah dikunci (Seragam)">
                         </div>
                     `;
                 }
 
                 container.innerHTML += `
-                    <div class="bg-gray-900 p-5 rounded-lg border border-gray-700 shadow-inner">
+                    <div id="round-setting-container-${i}" class="bg-gray-900 p-5 rounded-lg border border-gray-700 shadow-inner">
                         <label class="block text-yellow-400 font-bold mb-2 text-xl">Soalan Pusingan ${i + 1}:</label>
                         <input type="text" id="q${i}-text" value="${round.question}" placeholder="Taip soalan di sini..." class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-4 focus:outline-none focus:border-yellow-400 focus:bg-gray-700 text-lg transition">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
@@ -923,10 +1206,25 @@
                     </div>
                 `;
             }
-            document.getElementById('settings-modal').classList.remove('hidden');
+            updateRoundVisibility();
+        }
+
+        function updateRoundVisibility() {
+            const tr = parseInt(document.getElementById('setting-total-rounds').value) || 5;
+            for (let i = 0; i < 5; i++) {
+                const el = document.getElementById(`round-setting-container-${i}`);
+                if (el) {
+                    if (i < tr) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+            }
         }
 
         function closeSettings() {
+            isGamePaused = false; // Resume permainan
             document.getElementById('settings-modal').classList.add('hidden');
         }
 
@@ -988,18 +1286,10 @@
             localStorage.setItem('familyFeudTheme_MY', currentTheme);
             document.body.setAttribute('data-theme', currentTheme);
 
-            const newData = [];
-            for (let i = 0; i < 5; i++) {
-                const qText = document.getElementById(`q${i}-text`).value.trim();
-                const answers = [];
-                for (let j = 0; j < 8; j++) {
-                    const aText = document.getElementById(`q${i}-a${j}-text`).value.trim();
-                    const aPoints = parseInt(document.getElementById(`q${i}-a${j}-points`).value) || 0;
-                    if (aText !== "") answers.push({ text: aText, points: aPoints });
-                }
-                answers.sort((a, b) => b.points - a.points);
-                newData.push({ question: qText || `Soalan ${i + 1} (Tiada Tajuk)`, answers: answers });
-            }
+            totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5;
+            localStorage.setItem('familyFeudTotalRounds_MY', totalRounds);
+
+            const newData = extractFormData();
 
             localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
             gameData = newData;
@@ -1012,7 +1302,9 @@
                     victoryUrl: customVictoryUrl,
                     t1Name: t1Input,
                     t2Name: t2Input,
-                    gameData: newData
+                    totalRounds: totalRounds,
+                    gameData: newData,
+                    presets: appPresets
                 });
             }
 
@@ -1051,7 +1343,7 @@
                 <h1>Kad Rujukan Host - Family Feud</h1>
             `;
 
-            gameData.forEach((round, index) => {
+            gameData.slice(0, totalRounds).forEach((round, index) => {
                 htmlContent += `
                 <div class="round-container">
                     <div class="question-title">Pusingan ${index + 1}: ${round.question || '(Tiada Soalan Ditulis)'}</div>
@@ -1083,7 +1375,7 @@
         }
 
         function loadRound(roundIndex) {
-            if (roundIndex >= gameData.length) return;
+            if (roundIndex >= totalRounds) return;
             
             const roundData = gameData[roundIndex];
             revealedAnswers = new Array(roundData.answers.length).fill(false);
@@ -1100,7 +1392,7 @@
                 isCountingDown = false;
                 nextBtn.classList.remove('timeout-btn');
 
-                if (roundIndex >= gameData.length - 1) {
+                if (roundIndex >= totalRounds - 1) {
                     nextBtn.innerHTML = "<span class='relative z-10'>PUSINGAN AKHIR 🏁</span>";
                     nextBtn.classList.replace('bg-green-600', 'bg-yellow-600');
                     nextBtn.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700');
@@ -1115,6 +1407,7 @@
             missedRevealed = false; 
             updatePotDisplay();
             renderBoard(roundData);
+            startQuestionTimer();
         }
 
         function renderBoard(roundData) {
@@ -1154,6 +1447,7 @@
         }
 
         function revealAnswer(index) {
+            if (isGameOver) return;
             if (!gameData[currentRound] || !gameData[currentRound].answers) return;
             if (revealedAnswers[index]) return; 
             
@@ -1173,12 +1467,16 @@
             updateScores();
             
             playDingSound();
+            startQuestionTimer();
             checkWinner();
         }
 
         function checkWinner() {
             const allRevealed = revealedAnswers.length > 0 && revealedAnswers.every(ans => ans === true);
-            if (allRevealed && !isCountingDown) startNextRoundTimer(8);
+            if (allRevealed && !isCountingDown) {
+                if (questionTimerInterval) clearInterval(questionTimerInterval);
+                startNextRoundTimer(8);
+            }
         }
 
         function updatePotDisplay() {
@@ -1203,6 +1501,7 @@
         }
 
         function showStrike() {
+            if (isGameOver) return;
             currentStrikes++;
             if (currentStrikes > 3) currentStrikes = 3;
             updateStrikeUI();
@@ -1226,6 +1525,7 @@
                     updateActiveTeamUI();
                     updateStrikeUI();
                 }
+                startQuestionTimer();
             }, 1500);
         }
 
@@ -1237,11 +1537,13 @@
             nextBtn.style.setProperty('--timer-dur', duration + 's');
             nextBtn.classList.add('timeout-btn');
             
-            const isLastRound = currentRound >= gameData.length - 1;
+            const isLastRound = currentRound >= totalRounds - 1;
             let actionText = isLastRound ? "Tamat" : "Beralih";
             nextBtn.innerHTML = `<span class="relative z-10">${actionText} dalam ${timer}s ⏳ (Langkau)</span>`;
             
             countdownInterval = setInterval(() => {
+                if (isGamePaused) return; // Pause masa jika tetapan dibuka
+                
                 timer--;
                 if (timer > 0) {
                     nextBtn.innerHTML = `<span class="relative z-10">${actionText} dalam ${timer}s ⏳ (Langkau)</span>`;
@@ -1255,6 +1557,7 @@
         }
 
         function nextRound() {
+            if (isGameOver) return;
             const nextBtn = document.getElementById('btn-next-round');
             if (isCountingDown) {
                 clearInterval(countdownInterval);
@@ -1263,6 +1566,8 @@
                 executeNextRound();
                 return;
             }
+
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
 
             let hasUnrevealed = false;
             if (gameData[currentRound] && gameData[currentRound].answers) {
@@ -1284,7 +1589,7 @@
         }
 
         function executeNextRound() {
-            if (currentRound >= gameData.length - 1) {
+            if (currentRound >= totalRounds - 1) {
                 showWinnerPopup(); 
                 return;
             }
@@ -1293,6 +1598,8 @@
         }
 
         function showWinnerPopup() {
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+            
             const winnerOverlay = document.getElementById('winner-overlay');
             const winnerNameDisplay = document.getElementById('winner-name-display');
             
@@ -1348,6 +1655,33 @@
             victoryAudio.pause();
             victoryAudio.currentTime = 0;
             stopFireworks();
+            
+            // Hentikan BGM dan Reset semua fungsi kembali ke pusingan pertama
+            const bgmAudio = document.getElementById('bgm-audio');
+            bgmAudio.pause();
+            isBgmPlaying = false;
+            
+            const btn = document.getElementById('bgm-btn');
+            if (btn) {
+                btn.innerText = "🔇 BGM (OFF)";
+                btn.classList.replace('bg-blue-600', 'bg-gray-600');
+                btn.classList.replace('hover:bg-blue-700', 'hover:bg-gray-700');
+                btn.classList.replace('shadow-[0_0_10px_blue]', 'shadow-[0_0_10px_gray]');
+            }
+            
+            initGame();
+            
+            // Kunci permainan dan berhentikan timer (Memerlukan Restart dari Tetapan)
+            isGameOver = true;
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+            document.getElementById('q-timer-bar').style.width = '0%';
+            document.getElementById('q-timer-bar').classList.remove('blink');
+            const qTimerText = document.getElementById('q-timer-text');
+            if (qTimerText) {
+                qTimerText.innerText = "TAMAT - SILA MASUK TETAPAN & MULA SEMULA";
+                qTimerText.classList.remove('text-gray-300');
+                qTimerText.classList.add('text-red-400', 'animate-pulse');
+            }
         }
 
         // --- Animasi Bunga Api ---
@@ -1486,6 +1820,7 @@
 
         // --- Jalan Pintas Papan Kekunci (Keyboard Shortcuts) ---
         document.addEventListener('keydown', function(event) {
+            if (isGameOver) return;
             const activeElement = document.activeElement;
             const isInput = activeElement.tagName === 'INPUT' || 
                             activeElement.tagName === 'TEXTAREA' || 
