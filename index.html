@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado</title>
+    <title>Family Feud Malaysia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -719,6 +719,7 @@
         let appPresets = JSON.parse(JSON.stringify(defaultPresets));
 
         let gameData = [];
+        let currentPresetIndex = 0;
         const STORAGE_KEY = 'familyFeudDataMY';
 
         // State variables
@@ -1020,6 +1021,9 @@
             const savedTotalRounds = localStorage.getItem('familyFeudTotalRounds_MY');
             if (savedTotalRounds) totalRounds = parseInt(savedTotalRounds);
 
+            const savedPresetIndex = localStorage.getItem('familyFeudLastPreset_MY');
+            if (savedPresetIndex !== null) currentPresetIndex = parseInt(savedPresetIndex);
+
             const savedPresets = localStorage.getItem('familyFeudPresets_MY');
             if (savedPresets) {
                 try {
@@ -1066,7 +1070,7 @@
             document.getElementById('setting-total-rounds').value = totalRounds;
 
             refreshPresetDropdown();
-            document.getElementById('preset-selector').value = 0; 
+            document.getElementById('preset-selector').value = currentPresetIndex; 
             onPresetSelect();
 
             renderSettingsForm(gameData);
@@ -1112,6 +1116,10 @@
                 showAlert("Slot preset ini masih kosong. Sila simpan soalan terlebih dahulu.");
                 return;
             }
+
+            currentPresetIndex = idx;
+            localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex);
+
             renderSettingsForm(preset.data);
             showAlert(`Soalan dari '${preset.name}' berjaya dimuatkan ke dalam borang di bawah.\n\nSila klik butang 'Simpan & Mula Semula' untuk mula menggunakannya dalam permainan.`);
         }
@@ -1123,6 +1131,9 @@
 
             appPresets[idx].name = newName;
             appPresets[idx].data = newData;
+
+            currentPresetIndex = idx;
+            localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex);
 
             savePresetsToStorage();
             refreshPresetDropdown();
@@ -1138,6 +1149,10 @@
             showConfirm(`Adakah anda pasti mahu memadamkan data dalam '${appPresets[idx].name}'?`, () => {
                 appPresets[idx].name = `Preset ${parseInt(idx) + 1} (Kosong)`;
                 appPresets[idx].data = null;
+                
+                currentPresetIndex = idx;
+                localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex);
+
                 savePresetsToStorage();
                 refreshPresetDropdown();
                 document.getElementById('preset-selector').value = idx;
@@ -1341,6 +1356,15 @@
                     <button onclick="window.print()" style="padding: 10px 20px; font-size: 18px; cursor: pointer; background: #000; color:#fff; border:none; border-radius:5px;">Cetak Sekarang</button>
                 </div>
                 <h1>Kad Rujukan Host - Family Feud</h1>
+                <div style="background: #f9f9f9; border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px;">
+                    <h3 style="margin-top:0; margin-bottom: 10px;">💡 Tips Permainan & Hotkey (Untuk Host):</h3>
+                    <ul style="margin-bottom:0; padding-left: 20px; font-size: 1.1rem; line-height: 1.5;">
+                        <li>Tekan nombor <strong>1 - 8</strong> pada papan kekunci untuk membuka kad jawapan pantas.</li>
+                        <li>Tekan huruf <strong>'X'</strong> pada papan kekunci untuk tayangkan STRIKE (Salah).</li>
+                        <li>Klik pada nama kumpulan pada aplikasi untuk menukar giliran mereka secara manual.</li>
+                        <li>Pemasa 30s akan bermula / diperbaharui penuh secara automatik selepas jawapan diteka atau kesan strike tamat.</li>
+                    </ul>
+                </div>
             `;
 
             gameData.slice(0, totalRounds).forEach((round, index) => {
