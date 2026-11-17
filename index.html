@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado Malaysia v2.9.1</title>
+    <title>Gado-Gado Malaysia v2.9.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -424,7 +424,7 @@
                 <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
                         <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.9.1</span>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.9.2</span>
                     </div>
                     <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
                 </div>
@@ -559,6 +559,9 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+        // UNTUK MENYELARAS DATA ANTARA TELEFON PINTAR & KOMPUTER:
+        // Anda WAJIB menggantikan tetapan di bawah dengan konfigurasi projek Firebase anda sendiri.
+        // Pastikan Firestore Rules anda ditetapkan kepada: allow read, write: if true;
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDSqblFdWXAIg9IFV3EZN-iLKXhfkL0c2g",
             authDomain: "mysmartapps.firebaseapp.com",
@@ -600,7 +603,11 @@
                 await setDoc(docRef, dataObj);
                 return true;
             } catch (e) { 
-                console.error("Ralat Simpan Cloud:", e); 
+                if (e.code === 'permission-denied') {
+                    console.warn("Akses ditolak: Pangkalan data ini tidak membenarkan akses awam. Sila gunakan Konfigurasi Firebase anda sendiri untuk 'sync'.");
+                } else {
+                    console.error("Ralat Simpan Cloud:", e); 
+                }
                 return false; 
             }
         };
@@ -614,7 +621,11 @@
                 if (docSnap.exists()) return docSnap.data();
                 return null;
             } catch (e) { 
-                console.error("Ralat Muat Cloud:", e); 
+                if (e.code === 'permission-denied') {
+                    console.warn("Akses ditolak: Bertukar kepada mod Storan Lokal. Untuk penyelarasan data merentas peranti, sila masukkan konfigurasi Firebase anda sendiri.");
+                } else {
+                    console.error("Ralat Muat Cloud:", e); 
+                }
                 return null; 
             }
         };
@@ -708,6 +719,13 @@
         async function initGameWrapper() {
             if (gameInitialized) return;
             gameInitialized = true;
+            
+            // Tunggu sehingga modul Firebase selesai mendaftar masuk (Pembaikan Race Condition)
+            let tungguFirebase = 50; // Maksimum menunggu 5 saat (50 * 100ms)
+            while (!window.firebaseIsReady && tungguFirebase > 0) {
+                await new Promise(r => setTimeout(r, 100));
+                tungguFirebase--;
+            }
             
             let loadedFromCloud = false;
             if (window.firebaseIsReady) {
