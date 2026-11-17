@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado Malaysia v2.9</title>
+    <title>Gado-Gado Malaysia v2.9.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -424,7 +424,7 @@
                 <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
                         <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.9</span>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.9.1</span>
                     </div>
                     <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
                 </div>
@@ -595,21 +595,28 @@
         window.saveToCloud = async (dataObj) => {
             if (!window.firebaseIsReady) return false;
             try {
-                // Menggunakan Public Data path (Boleh diakses secara seragam oleh Canvas / Web / Local)
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'MasterData');
+                // Membetulkan ralat path: mesti genap (Collection -> Document)
+                const docRef = doc(db, 'GadoGadoApp', 'PublicMasterData');
                 await setDoc(docRef, dataObj);
                 return true;
-            } catch (e) { return false; }
+            } catch (e) { 
+                console.error("Ralat Simpan Cloud:", e); 
+                return false; 
+            }
         };
 
         window.loadFromCloud = async () => {
             if (!window.firebaseIsReady) return null;
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'MasterData');
+                // Membetulkan ralat path: mesti genap (Collection -> Document)
+                const docRef = doc(db, 'GadoGadoApp', 'PublicMasterData');
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) return docSnap.data();
                 return null;
-            } catch (e) { return null; }
+            } catch (e) { 
+                console.error("Ralat Muat Cloud:", e); 
+                return null; 
+            }
         };
 
         initAuth();
