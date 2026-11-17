@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado Malaysia v2.4</title>
+    <title>Gado-Gado Malaysia v2.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -309,7 +309,7 @@
     <div id="loading-overlay" class="fixed inset-0 bg-black z-[250] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="loader-spinner mb-6"></div>
         <p class="text-yellow-400 text-2xl font-bold tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(255,180,0,0.8)] uppercase">Menyambung...</p>
-        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v2.4 Cloud Sync)</p>
+        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v2.6)</p>
     </div>
 
     <!-- Audio Start Overlay (Main Menu) -->
@@ -421,7 +421,7 @@
                 <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
                         <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.4 (Cloud Sync)</span>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.6</span>
                     </div>
                     <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
                 </div>
@@ -459,15 +459,6 @@
                                 <option value="emerald">Hijau Zamrud (Alam)</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-yellow-400 font-bold text-lg mb-2">🔢 Jumlah Pusingan</label>
-                            <select id="setting-total-rounds" onchange="updateRoundVisibility()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
-                                <option value="2">2 Pusingan</option>
-                                <option value="3">3 Pusingan</option>
-                                <option value="4">4 Pusingan</option>
-                                <option value="5" selected>5 Pusingan</option>
-                            </select>
-                        </div>
                     </div>
 
                     <!-- Audio -->
@@ -478,16 +469,24 @@
                         </div>
                         <div class="bg-gray-900 p-2 rounded border border-gray-700">
                             <span class="text-sm font-semibold text-gray-300 block mb-1">Muzik Latar (BGM):</span>
-                            <div class="flex flex-col xl:flex-row gap-2">
+                            <div class="flex flex-col xl:flex-row gap-2 mb-2">
                                 <input type="text" id="bgm-url" placeholder="URL BGM" class="flex-grow bg-gray-700 border border-gray-500 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-yellow-400">
                                 <input type="file" id="bgm-file" accept="audio/*" class="w-full xl:w-auto text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer">
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="previewAudio('bgm')" class="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold shadow">▶️ Prebiu</button>
+                                <button type="button" onclick="stopPreview()" class="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs font-semibold shadow">⏹️ Stop</button>
                             </div>
                         </div>
                         <div class="bg-gray-900 p-2 rounded border border-gray-700">
                             <span class="text-sm font-semibold text-gray-300 block mb-1">Lagu Kemenangan:</span>
-                            <div class="flex flex-col xl:flex-row gap-2">
+                            <div class="flex flex-col xl:flex-row gap-2 mb-2">
                                 <input type="text" id="victory-url" placeholder="URL Kemenangan" class="flex-grow bg-gray-700 border border-gray-500 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-yellow-400">
                                 <input type="file" id="victory-file" accept="audio/*" class="w-full xl:w-auto text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer">
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="previewAudio('victory')" class="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold shadow">▶️ Prebiu</button>
+                                <button type="button" onclick="stopPreview()" class="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs font-semibold shadow">⏹️ Stop</button>
                             </div>
                         </div>
                     </div>
@@ -495,20 +494,27 @@
 
                 <!-- Preset -->
                 <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col gap-4 mb-8">
-                    <label class="block text-yellow-400 font-bold text-lg">📁 Pengurusan Preset Soalan</label>
-                    <div class="flex flex-col md:flex-row gap-4 items-end">
-                        <div class="w-full md:w-1/3">
+                    <label class="block text-yellow-400 font-bold text-lg">📁 Pengurusan Preset Soalan & Pusingan</label>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div>
                             <span class="text-sm font-semibold text-gray-300 block mb-1">Pilih Slot Preset:</span>
-                            <select id="preset-selector" onchange="onPresetSelect()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer"></select>
+                            <select id="preset-selector" onchange="handlePresetChange()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer"></select>
                         </div>
-                        <div class="w-full md:w-1/3">
+                        <div>
                             <span class="text-sm font-semibold text-gray-300 block mb-1">Nama Preset:</span>
-                            <input type="text" id="preset-name" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400">
+                            <input type="text" id="preset-name" oninput="updatePresetName()" onchange="savePresetsToStorage()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400" title="Taip untuk ubah nama preset secara automatik">
                         </div>
-                        <div class="w-full md:w-1/3 flex flex-wrap gap-2">
-                            <button type="button" onclick="loadSelectedPreset()" class="flex-1 px-2 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white font-semibold transition shadow-[0_0_5px_blue]">Muat</button>
-                            <button type="button" onclick="saveToSelectedPreset()" class="flex-1 px-2 py-2 bg-green-600 hover:bg-green-500 rounded text-white font-semibold transition shadow-[0_0_5px_green]">Simpan</button>
-                            <button type="button" id="btn-delete-preset" onclick="deleteSelectedPreset()" class="flex-1 px-2 py-2 bg-red-600 hover:bg-red-500 rounded text-white font-semibold transition shadow-[0_0_5px_red]">Padam</button>
+                        <div>
+                            <span class="text-sm font-semibold text-gray-300 block mb-1">Jumlah Pusingan:</span>
+                            <select id="setting-total-rounds" onchange="handleTotalRoundsChange()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                                <option value="2">2 Pusingan</option>
+                                <option value="3">3 Pusingan</option>
+                                <option value="4">4 Pusingan</option>
+                                <option value="5" selected>5 Pusingan</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" id="btn-delete-preset" onclick="deleteSelectedPreset()" class="w-full px-2 py-2 bg-red-600 hover:bg-red-500 rounded text-white font-semibold transition shadow-[0_0_5px_red]">Kosongkan (Padam)</button>
                         </div>
                     </div>
                 </div>
@@ -630,6 +636,7 @@
         let isCountingDown = false; let countdownInterval = null; let isGamePaused = false; let totalRounds = 5;
         let questionTimerInterval = null; let questionTimeLeft = 30; const QUESTION_TIME_LIMIT = 30;
         let isGameOver = false; let isGameActive = false;
+        let currentPreviewAudio = null;
 
         function escapeHTML(str) {
             if (!str) return "";
@@ -799,14 +806,23 @@
 
         function openSettings() {
             isGamePaused = true;
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (!bgmAudio.paused) bgmAudio.pause(); // Jeda lagu latar sementara
+
             document.getElementById('setting-game-title').value = document.getElementById('game-title-display').innerHTML.replace(/<br\s*[\/]?>/gi, '\n');
             document.getElementById('bgm-url').value = customBgmUrl; document.getElementById('bgm-file').value = ""; 
             document.getElementById('victory-url').value = customVictoryUrl; document.getElementById('victory-file').value = ""; 
             document.getElementById('setting-t1-name').value = document.getElementById('team1-name').innerText;
             document.getElementById('setting-t2-name').value = document.getElementById('team2-name').innerText;
             document.getElementById('setting-theme').value = currentTheme; document.getElementById('setting-total-rounds').value = totalRounds;
-            refreshPresetDropdown(); document.getElementById('preset-selector').value = currentPresetIndex; onPresetSelect();
-            renderSettingsForm(gameData); document.getElementById('settings-modal').classList.remove('hidden');
+            
+            refreshPresetDropdown(); 
+            document.getElementById('preset-selector').value = currentPresetIndex; 
+            document.getElementById('preset-name').value = appPresets[currentPresetIndex].name;
+            updateDeleteButtonState(currentPresetIndex);
+            
+            renderSettingsForm(gameData); 
+            document.getElementById('settings-modal').classList.remove('hidden');
         }
 
         function refreshPresetDropdown() {
@@ -814,8 +830,7 @@
             appPresets.forEach((p, idx) => { const opt = document.createElement('option'); opt.value = idx; opt.text = p.name; selector.appendChild(opt); });
         }
 
-        function onPresetSelect() {
-            const idx = document.getElementById('preset-selector').value; document.getElementById('preset-name').value = appPresets[idx].name;
+        function updateDeleteButtonState(idx) {
             const delBtn = document.getElementById('btn-delete-preset');
             if (idx == 0) {
                 delBtn.disabled = true; delBtn.classList.replace('bg-red-600', 'bg-gray-600'); delBtn.classList.replace('hover:bg-red-500', 'hover:bg-gray-600'); delBtn.classList.replace('shadow-[0_0_5px_red]', 'shadow-none'); delBtn.classList.add('opacity-50', 'cursor-not-allowed');
@@ -824,32 +839,73 @@
             }
         }
 
+        function handlePresetChange() {
+            // Auto-simpan form semasa ke preset lama
+            appPresets[currentPresetIndex].data = extractFormData();
+            appPresets[currentPresetIndex].totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5;
+            
+            // Dapatkan index baru
+            const newIdx = document.getElementById('preset-selector').value;
+            currentPresetIndex = newIdx;
+            localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex);
+
+            // Auto-muat data dari preset baru
+            const newPreset = appPresets[newIdx];
+            document.getElementById('preset-name').value = newPreset.name;
+            document.getElementById('setting-total-rounds').value = newPreset.totalRounds || 5;
+            
+            let dataToLoad = newPreset.data;
+            if (!dataToLoad) {
+                dataToLoad = [];
+                for(let i=0; i<5; i++) dataToLoad.push({ question: "", answers: [] });
+            }
+            renderSettingsForm(dataToLoad);
+            updateDeleteButtonState(newIdx);
+
+            savePresetsToStorage();
+            triggerFlashHighlight();
+            showToast(`Auto-Muat: '${newPreset.name}'`);
+        }
+
+        function handleTotalRoundsChange() {
+            updateRoundVisibility();
+            appPresets[currentPresetIndex].totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5;
+            savePresetsToStorage();
+            triggerFlashHighlight();
+        }
+
+        function updatePresetName() {
+            const newName = document.getElementById('preset-name').value.trim() || `Preset ${parseInt(currentPresetIndex) + 1}`;
+            appPresets[currentPresetIndex].name = newName;
+            const selector = document.getElementById('preset-selector');
+            selector.options[selector.selectedIndex].text = newName;
+        }
+
         function triggerFlashHighlight() {
             const container = document.getElementById('settings-form-container');
             container.classList.remove('flash-highlight'); void container.offsetWidth; container.classList.add('flash-highlight');
         }
 
-        function loadSelectedPreset() {
-            const idx = document.getElementById('preset-selector').value; const preset = appPresets[idx];
-            if (!preset.data) return showToast("Slot preset ini masih kosong!", true);
-            currentPresetIndex = idx; localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex);
-            document.getElementById('setting-total-rounds').value = preset.totalRounds || 5;
-            renderSettingsForm(preset.data); triggerFlashHighlight(); showToast(`Data dari '${preset.name}' dimuat turun.`);
-        }
-
-        function saveToSelectedPreset() {
-            const idx = document.getElementById('preset-selector').value; const newName = document.getElementById('preset-name').value.trim() || `Preset ${parseInt(idx) + 1}`;
-            appPresets[idx].name = newName; appPresets[idx].data = extractFormData(); appPresets[idx].totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5;
-            currentPresetIndex = idx; localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex); savePresetsToStorage(); refreshPresetDropdown(); document.getElementById('preset-selector').value = idx; onPresetSelect();
-            triggerFlashHighlight(); showToast(`Disimpan ke slot '${newName}'!`);
-        }
-
         function deleteSelectedPreset() {
-            const idx = document.getElementById('preset-selector').value; if (idx == 0) return; 
-            showConfirm(`Adakah anda pasti mahu memadamkan data dalam '${appPresets[idx].name}'?`, () => {
-                appPresets[idx].name = `Preset ${parseInt(idx) + 1} (Kosong)`; appPresets[idx].data = null; appPresets[idx].totalRounds = 5;
-                currentPresetIndex = idx; localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex); savePresetsToStorage(); refreshPresetDropdown(); document.getElementById('preset-selector').value = idx; onPresetSelect();
-                showToast("Preset dikosongkan.");
+            const idx = currentPresetIndex; if (idx == 0) return; 
+            showConfirm(`Adakah anda pasti mahu mengosongkan data dalam '${appPresets[idx].name}'?`, () => {
+                const defaultName = `Preset ${parseInt(idx) + 1} (Kosong)`;
+                appPresets[idx].name = defaultName; 
+                const emptyData = [];
+                for(let i=0; i<5; i++) emptyData.push({ question: "", answers: [] });
+                appPresets[idx].data = emptyData; 
+                appPresets[idx].totalRounds = 5;
+                
+                document.getElementById('preset-name').value = defaultName;
+                document.getElementById('setting-total-rounds').value = 5;
+                const selector = document.getElementById('preset-selector');
+                selector.options[selector.selectedIndex].text = defaultName;
+
+                renderSettingsForm(emptyData);
+                savePresetsToStorage(); 
+                
+                triggerFlashHighlight();
+                showToast("Slot telah dikosongkan secara automatik.");
             });
         }
 
@@ -889,7 +945,42 @@
             for (let i = 0; i < 5; i++) { const el = document.getElementById(`round-setting-container-${i}`); if (el) el.classList.toggle('hidden', i >= tr); }
         }
 
-        function closeSettings() { isGamePaused = false; document.getElementById('settings-modal').classList.add('hidden'); }
+        function closeSettings() { 
+            isGamePaused = false; 
+            document.getElementById('settings-modal').classList.add('hidden'); 
+            stopPreview(); // Hentikan sebarang lagu prebiu yang sedang berjalan
+            
+            // Sambung semula lagu latar jika ia aktif
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (isBgmPlaying && isGameActive && isAudioStarted && !isGameOver) {
+                bgmAudio.play().catch(e => console.warn(e));
+            }
+        }
+
+        function previewAudio(type) {
+            stopPreview();
+            let url = '';
+            let fileInput = document.getElementById(type + '-file').files[0];
+            if (fileInput) {
+                url = URL.createObjectURL(fileInput);
+            } else {
+                url = document.getElementById(type + '-url').value.trim();
+            }
+            if (url) {
+                currentPreviewAudio = new Audio(url);
+                currentPreviewAudio.play().catch(e => showToast("Gagal memainkan prebiu audio.", true));
+            } else {
+                showToast("Sila masukkan URL atau pilih fail audio terlebih dahulu.", true);
+            }
+        }
+
+        function stopPreview() {
+            if (currentPreviewAudio) {
+                currentPreviewAudio.pause();
+                currentPreviewAudio.src = "";
+                currentPreviewAudio = null;
+            }
+        }
 
         function saveSettings() {
             const bgmFileInput = document.getElementById('bgm-file').files[0];
@@ -912,7 +1003,13 @@
             document.getElementById('team1-name').innerText = t1Input; document.getElementById('team2-name').innerText = t2Input; localStorage.setItem('familyFeudT1Name_MY', t1Input); localStorage.setItem('familyFeudT2Name_MY', t2Input);
             currentTheme = document.getElementById('setting-theme').value; localStorage.setItem('familyFeudTheme_MY', currentTheme); document.body.setAttribute('data-theme', currentTheme);
             totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5; localStorage.setItem('familyFeudTotalRounds_MY', totalRounds);
+            
             const newData = extractFormData(); localStorage.setItem(STORAGE_KEY, JSON.stringify(newData)); gameData = newData;
+            
+            // Simpan perubahan borang terkini ke dalam slot preset yang aktif
+            appPresets[currentPresetIndex].data = newData;
+            appPresets[currentPresetIndex].totalRounds = totalRounds;
+            savePresetsToStorage();
 
             if (window.saveToCloud) window.saveToCloud({ theme: currentTheme, title: titleInput, bgmUrl: customBgmUrl, victoryUrl: customVictoryUrl, t1Name: t1Input, t2Name: t2Input, totalRounds: totalRounds, gameData: newData, presets: appPresets });
             
