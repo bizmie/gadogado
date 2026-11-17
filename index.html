@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado Malaysia v2.6</title>
+    <title>Gado-Gado Malaysia v2.8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -309,7 +309,7 @@
     <div id="loading-overlay" class="fixed inset-0 bg-black z-[250] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="loader-spinner mb-6"></div>
         <p class="text-yellow-400 text-2xl font-bold tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(255,180,0,0.8)] uppercase">Menyambung...</p>
-        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v2.6)</p>
+        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v2.8)</p>
     </div>
 
     <!-- Audio Start Overlay (Main Menu) -->
@@ -320,6 +320,9 @@
         </div>
         <button onclick="startAudio()" class="btn-pulse px-12 py-4 bg-green-600 text-white font-bold rounded-full text-3xl border-2 border-transparent transition cursor-pointer">
             🎵 Mula Bermain
+        </button>
+        <button onclick="openSettings()" class="mt-8 px-6 py-2 border border-gray-600 text-gray-400 hover:text-yellow-400 hover:border-yellow-400 rounded-full text-lg transition shadow-lg bg-black bg-opacity-50">
+            ⚙️ Tetapan
         </button>
     </div>
 
@@ -415,13 +418,13 @@
     <audio id="victory-audio"></audio>
 
     <!-- Settings Modal -->
-    <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-95 z-50 overflow-y-auto">
+    <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-95 z-[150] overflow-y-auto">
         <div class="min-h-screen flex items-center justify-center p-4">
             <div class="bg-gray-800 text-white w-full max-w-5xl p-6 rounded-lg shadow-2xl border border-gray-600">
                 <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
                         <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.6</span>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.8</span>
                     </div>
                     <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
                 </div>
@@ -878,7 +881,7 @@
             const newName = document.getElementById('preset-name').value.trim() || `Preset ${parseInt(currentPresetIndex) + 1}`;
             appPresets[currentPresetIndex].name = newName;
             const selector = document.getElementById('preset-selector');
-            selector.options[selector.selectedIndex].text = newName;
+            selector.options[currentPresetIndex].text = newName;
         }
 
         function triggerFlashHighlight() {
@@ -899,7 +902,7 @@
                 document.getElementById('preset-name').value = defaultName;
                 document.getElementById('setting-total-rounds').value = 5;
                 const selector = document.getElementById('preset-selector');
-                selector.options[selector.selectedIndex].text = defaultName;
+                selector.options[idx].text = defaultName;
 
                 renderSettingsForm(emptyData);
                 savePresetsToStorage(); 
@@ -922,7 +925,7 @@
                     const aText = document.getElementById(`q${i}-a${j}-text`).value.trim();
                     if (aText !== "") answers.push({ text: aText, points: FIXED_POINTS[j] });
                 }
-                answers.sort((a, b) => b.points - a.points); newData.push({ question: qText || `Soalan ${i + 1} (Tiada Tajuk)`, answers: answers });
+                answers.sort((a, b) => b.points - a.points); newData.push({ question: qText, answers: answers });
             }
             while(newData.length < 5) newData.push({ question: "", answers: [] }); return newData;
         }
