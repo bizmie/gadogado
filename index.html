@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado Malaysia v2.8</title>
+    <title>Gado-Gado Malaysia v2.9</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -309,7 +309,7 @@
     <div id="loading-overlay" class="fixed inset-0 bg-black z-[250] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="loader-spinner mb-6"></div>
         <p class="text-yellow-400 text-2xl font-bold tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(255,180,0,0.8)] uppercase">Menyambung...</p>
-        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v2.8)</p>
+        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v2.9)</p>
     </div>
 
     <!-- Audio Start Overlay (Main Menu) -->
@@ -424,7 +424,7 @@
                 <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
                         <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.8</span>
+                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v2.9</span>
                     </div>
                     <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
                 </div>
@@ -571,7 +571,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'family-feud-my';
+        
+        // Tetapan ID Mutlak (Hardcoded) supaya PC dan Web tepat merujuk dokumen yang sama
+        const appId = 'GadoGadoApp_MasterDB_Public';
 
         window.firebaseIsReady = false;
 
@@ -914,7 +916,23 @@
 
         function savePresetsToStorage() {
             localStorage.setItem('familyFeudPresets_MY', JSON.stringify(appPresets));
-            if (window.saveToCloud) window.loadFromCloud().then(d => { let data = d || {}; data.presets = appPresets; window.saveToCloud(data); });
+            
+            // Simpan terus ke Cloud (Push) tanpa perlu baca dahulu untuk mengelakkan sangkut di talian (Network Latency/Race Condition)
+            if (window.saveToCloud) {
+                const syncData = {
+                    theme: currentTheme,
+                    title: localStorage.getItem('familyFeudTitle_MY') || "Gado-Gado\nMalaysia",
+                    bgmUrl: customBgmUrl,
+                    victoryUrl: customVictoryUrl,
+                    t1Name: document.getElementById('team1-name').innerText,
+                    t2Name: document.getElementById('team2-name').innerText,
+                    totalRounds: totalRounds,
+                    gameData: gameData,
+                    presets: appPresets,
+                    lastUpdate: new Date().toISOString()
+                };
+                window.saveToCloud(syncData); // Berjalan di latar belakang dengan pantas!
+            }
         }
 
         function extractFormData() {
