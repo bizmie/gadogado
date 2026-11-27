@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gado-Gado Malaysia v3.0</title>
+    <title>Gado-Gado Malaysia v3.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
-            /* Tema 1: Biru Klasik (Lalaian) */
+            /* Tema 1: Biru Klasik (Lalai) */
             --bg-start: #0f4c75;
             --bg-end: #1b262c;
             --board-brd: #ffb400;
@@ -19,7 +19,7 @@
             --card-bg-end: #1b262c;
             --card-brd: #3282b8;
             --txt-accent: #bbe1fa;
-            --active-glow: rgba(255, 215, 0, 0.8);
+            --active-glow: rgba(255, 215, 0, 0.85);
             --active-bg: rgba(255, 215, 0, 0.15);
         }
 
@@ -33,7 +33,7 @@
             --card-bg-end: #38006b;
             --card-brd: #d500f9;
             --txt-accent: #ea80fc;
-            --active-glow: rgba(255, 0, 127, 0.8);
+            --active-glow: rgba(255, 0, 127, 0.85);
             --active-bg: rgba(255, 0, 127, 0.15);
         }
 
@@ -47,7 +47,7 @@
             --card-bg-end: #0f5132;
             --card-brd: #20c997;
             --txt-accent: #a3cfbb;
-            --active-glow: rgba(245, 158, 11, 0.8);
+            --active-glow: rgba(245, 158, 11, 0.85);
             --active-bg: rgba(245, 158, 11, 0.15);
         }
 
@@ -60,19 +60,26 @@
             user-select: none;
         }
 
+        /* Papan Permainan Padat (Sesuai 4:3 & Skrin Lebar) */
         .board-container {
-            border: 8px solid var(--board-brd);
-            border-radius: 20px;
+            border: 6px solid var(--board-brd);
+            border-radius: 18px;
             background-color: var(--bg-end);
-            box-shadow: 0 0 20px var(--board-glow), inset 0 0 20px rgba(0,0,0,0.8);
+            box-shadow: 0 0 22px var(--board-glow), inset 0 0 18px rgba(0, 0, 0, 0.8);
         }
 
         .flip-card {
             background-color: transparent;
             width: 100%;
-            height: 80px;
+            height: 64px;
             perspective: 1000px;
             cursor: pointer;
+        }
+
+        @media (min-width: 768px) {
+            .flip-card {
+                height: 74px;
+            }
         }
 
         .flip-card-inner {
@@ -88,7 +95,8 @@
             transform: rotateX(180deg);
         }
 
-        .flip-card-front, .flip-card-back {
+        .flip-card-front,
+        .flip-card-back {
             position: absolute;
             width: 100%;
             height: 100%;
@@ -96,123 +104,58 @@
             backface-visibility: hidden;
             display: flex;
             align-items: center;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 2px solid var(--card-brd);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
         }
 
         .flip-card-front {
             background: linear-gradient(to bottom, var(--card-bg-start), var(--card-bg-end));
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: bold;
             color: var(--txt-accent);
         }
 
         .flip-card-back {
-            background: linear-gradient(to bottom, #f0f0f0, #d9d9d9);
+            background: linear-gradient(to bottom, #f5f5f5, #dcdcdc);
             color: #1b262c;
             transform: rotateX(180deg);
-            padding: 0 15px;
+            padding-left: 12px;
         }
 
         .answer-text {
             flex-grow: 1;
             text-align: left;
-            font-size: 1.5rem;
+            font-size: 1.15rem;
             font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.15;
+            padding-right: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            .answer-text {
+                font-size: 1.4rem;
+            }
         }
 
         .answer-score {
-            width: 60px;
+            width: 56px;
             height: 100%;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: var(--card-bg-start);
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             border-left: 2px solid var(--card-brd);
-        }
-
-        #strike-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 50;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-
-        #strike-overlay.show {
-            opacity: 1;
-            animation: flashRed 0.5s ease-in-out;
-        }
-
-        .strike-x {
-            font-size: 15rem;
-            color: red;
-            font-weight: bold;
-            text-shadow: 0 0 30px darkred, 5px 5px 0 black;
-            transform: scale(0);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        #strike-overlay.show .strike-x {
-            transform: scale(1);
-        }
-
-        @keyframes flashRed {
-            0% { background: rgba(0,0,0,0.7); }
-            50% { background: rgba(255,0,0,0.3); }
-            100% { background: rgba(0,0,0,0.7); }
-        }
-
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 10px var(--active-bg), inset 0 0 10px var(--active-bg); border-color: transparent; }
-            50% { box-shadow: 0 0 35px var(--active-glow), inset 0 0 20px var(--board-glow); border-color: var(--board-brd); }
-            100% { box-shadow: 0 0 10px var(--active-bg), inset 0 0 10px var(--active-bg); border-color: transparent; }
-        }
-
-        .team-container {
-            padding: 8px 10px;
-            border: 2px solid transparent;
-            border-radius: 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .active-team {
-            animation: pulseGlow 1.5s infinite alternate;
-            border: 2px solid var(--board-brd);
-            transform: scale(1.05);
-        }
-
-        .winner-text {
-            animation: popInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        @keyframes popInBounce {
-            0% { transform: scale(0.1); opacity: 0; }
-            60% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes rgbPulseText {
-            0% { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.9); }
-            33% { color: #33ff33; text-shadow: 0 0 25px rgba(51,255,51,0.9); }
-            66% { color: #3333ff; text-shadow: 0 0 25px rgba(51,51,255,0.9); }
-            100% { color: #ff3333; text-shadow: 0 0 25px rgba(255,51,51,0.9); }
-        }
-
-        .text-rgb-pulse {
-            animation: popInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, rgbPulseText 3s linear infinite !important;
         }
 
         /* Jawapan Terlepas (Missed) */
@@ -226,168 +169,301 @@
             border-left: 2px solid #555555;
         }
 
-        /* Warna Jawapan */
-        .flip-card.revealed.team1-ans .answer-text { color: #1d4ed8; }
-        .flip-card.revealed.team2-ans .answer-text { color: #ea580c; }
+        /* Warna Jawapan Berjaya Diteka Mengikut Kumpulan */
+        .flip-card.revealed.team1-ans .answer-text {
+            color: #1d4ed8;
+        }
+        .flip-card.revealed.team2-ans .answer-text {
+            color: #ea580c;
+        }
 
+        /* Kotak Kumpulan Padat */
+        .team-container {
+            padding: 8px 10px;
+            border: 2px solid transparent;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px var(--active-bg), inset 0 0 8px var(--active-bg); border-color: transparent; }
+            50% { box-shadow: 0 0 28px var(--active-glow), inset 0 0 16px var(--board-glow); border-color: var(--board-brd); }
+            100% { box-shadow: 0 0 10px var(--active-bg), inset 0 0 8px var(--active-bg); border-color: transparent; }
+        }
+
+        .active-team {
+            animation: pulseGlow 1.5s infinite alternate;
+            border: 2px solid var(--board-brd);
+            transform: scale(1.03);
+        }
+
+        /* Strike Overlay */
+        #strike-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 180;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        #strike-overlay.show {
+            opacity: 1;
+            animation: flashRed 0.5s ease-in-out;
+        }
+
+        .strike-x {
+            font-size: 11rem;
+            color: #ef4444;
+            font-weight: bold;
+            text-shadow: 0 0 30px darkred, 5px 5px 0 black;
+            transform: scale(0);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @media (min-width: 768px) {
+            .strike-x {
+                font-size: 14rem;
+            }
+        }
+
+        #strike-overlay.show .strike-x {
+            transform: scale(1);
+        }
+
+        @keyframes flashRed {
+            0% { background: rgba(0, 0, 0, 0.72); }
+            50% { background: rgba(255, 0, 0, 0.32); }
+            100% { background: rgba(0, 0, 0, 0.72); }
+        }
+
+        /* Logo Intro */
         .ff-logo-box {
-            border: 6px solid #ffb400;
-            border-radius: 60px;
-            background: linear-gradient(135deg, #0f4c75, #1b262c);
-            padding: 30px 60px;
-            box-shadow: 0 0 30px rgba(255, 180, 0, 0.6), inset 0 0 20px rgba(0,0,0,0.8);
+            border: 6px solid var(--board-brd);
+            border-radius: 48px;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            padding: 24px 48px;
+            box-shadow: 0 0 32px var(--board-glow), inset 0 0 20px rgba(0, 0, 0, 0.8);
             text-shadow: 2px 2px 4px #000;
             display: inline-block;
         }
 
         @keyframes btnPulse {
             0% { transform: scale(1); box-shadow: 0 0 15px #16a34a; }
-            50% { transform: scale(1.1); box-shadow: 0 0 40px #22c55e; border-color: white; }
+            50% { transform: scale(1.06); box-shadow: 0 0 35px #22c55e; border-color: white; }
             100% { transform: scale(1); box-shadow: 0 0 15px #16a34a; }
         }
         .btn-pulse {
             animation: btnPulse 1.5s infinite;
         }
 
-        /* Timeout Bar */
-        .timeout-btn { position: relative; overflow: hidden; }
-        .timeout-btn::before {
-            content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 100%;
-            background: rgba(255, 255, 255, 0.4);
-            animation: shrinkBar var(--timer-dur, 5s) linear forwards; z-index: 1;
+        /* Winner Text Animation */
+        @keyframes popInBounce {
+            0% { transform: scale(0.1); opacity: 0; }
+            60% { transform: scale(1.08); opacity: 1; }
+            100% { transform: scale(1); }
         }
-        @keyframes shrinkBar { from { width: 100%; } to { width: 0%; } }
+        @keyframes rgbPulseText {
+            0% { color: #ff3333; text-shadow: 0 0 25px rgba(255, 51, 51, 0.9); }
+            33% { color: #33ff33; text-shadow: 0 0 25px rgba(51, 255, 51, 0.9); }
+            66% { color: #3399ff; text-shadow: 0 0 25px rgba(51, 153, 255, 0.9); }
+            100% { color: #ff3333; text-shadow: 0 0 25px rgba(255, 51, 51, 0.9); }
+        }
+        .text-rgb-pulse {
+            animation: popInBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, rgbPulseText 3s linear infinite;
+        }
+
+        /* Timeout Bar pada Butang Seterusnya */
+        .timeout-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .timeout-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.35);
+            animation: shrinkBar var(--timer-dur, 5s) linear forwards;
+            z-index: 1;
+        }
+        @keyframes shrinkBar {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
 
         /* Timer Soalan */
         .q-timer-container {
-            width: 100%; height: 12px; background-color: rgba(255, 255, 255, 0.15);
-            border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 10px rgba(0,0,0,0.6);
-            position: relative;
+            width: 100%;
+            height: 10px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.6);
         }
         .q-timer-bar {
-            height: 100%; width: 100%; background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
-            background-size: 200% 100%; transition: width 1s linear; border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255,255,255,0.4);
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #22c55e, #eab308, #ef4444);
+            background-size: 200% 100%;
+            transition: width 1s linear;
+            border-radius: 10px;
         }
         .q-timer-bar.blink {
-            animation: timerBlink 0.5s infinite alternate; background: #ef4444; box-shadow: 0 0 20px #ef4444;
+            animation: timerBlink 0.5s infinite alternate;
+            background: #ef4444;
+            box-shadow: 0 0 18px #ef4444;
         }
-        @keyframes timerBlink { from { opacity: 1; } to { opacity: 0.3; } }
+        @keyframes timerBlink {
+            from { opacity: 1; }
+            to { opacity: 0.3; }
+        }
 
-        /* Animasi Loading */
+        /* Flash Highlight Real-time Preset */
+        @keyframes flashHighlight {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.9); border-color: #22c55e; }
+            50% { box-shadow: 0 0 28px 6px rgba(34, 197, 94, 0.7); border-color: #4ade80; }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); border-color: #374151; }
+        }
+        .flash-sync {
+            animation: flashHighlight 0.8s ease-out;
+        }
+
+        /* Loading Spinner */
         .loader-spinner {
-            width: 80px; height: 80px; border: 8px solid rgba(255, 255, 255, 0.1);
-            border-left-color: var(--board-brd); border-radius: 50%;
-            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            width: 72px;
+            height: 72px;
+            border: 8px solid rgba(255, 255, 255, 0.12);
+            border-left-color: var(--board-brd);
+            border-radius: 50%;
+            animation: spin 1.1s linear infinite;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-        /* Notifikasi Toast */
+        /* Toast Notification */
         #toast-container {
-            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
-            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 350;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
         }
-        .toast-msg {
-            background-color: #16a34a; color: white; padding: 12px 24px; border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); font-weight: bold; font-size: 1.1rem;
-            transform: translateX(150%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; align-items: center; gap: 10px;
+        .toast-item {
+            pointer-events: auto;
+            animation: toastIn 0.25s ease-out forwards;
         }
-        .toast-msg.show { transform: translateX(0); }
-        .toast-msg.error { background-color: #dc2626; }
-        
-        .flash-highlight { animation: flashSuccess 0.8s ease-out; }
-        @keyframes flashSuccess {
-            0% { box-shadow: 0 0 30px #22c55e, inset 0 0 30px #22c55e; background-color: rgba(34, 197, 94, 0.2); }
-            100% { box-shadow: none; background-color: transparent; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(14px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
     </style>
 </head>
-<body class="flex flex-col h-screen">
+<body class="flex flex-col h-screen overflow-hidden">
 
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="fixed inset-0 bg-black z-[250] flex flex-col items-center justify-center transition-opacity duration-500">
-        <div class="loader-spinner mb-6"></div>
-        <p class="text-yellow-400 text-2xl font-bold tracking-widest animate-pulse drop-shadow-[0_0_10px_rgba(255,180,0,0.8)] uppercase">Menyambung...</p>
-        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data (v3.0)</p>
+        <div class="loader-spinner mb-5"></div>
+        <p class="text-yellow-400 text-2xl font-bold tracking-widest animate-pulse uppercase">Menyambung...</p>
+        <p class="text-gray-400 text-sm mt-2 tracking-wide">Memuatkan data Gado-Gado (v3.3)</p>
     </div>
 
-    <!-- Audio Start Overlay (Main Menu) -->
+    <!-- Audio Start / Intro Overlay -->
     <div id="audio-overlay" class="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col items-center justify-center p-4">
-        <div class="ff-logo-box mb-12 flex flex-col items-center">
-            <div class="text-7xl mb-4 drop-shadow-lg">🏆</div>
-            <h1 id="game-title-display" class="text-5xl md:text-7xl font-bold text-yellow-400 uppercase tracking-wider text-center drop-shadow-lg leading-tight">Gado-Gado<br>Malaysia</h1>
+        <div class="ff-logo-box mb-8 text-center">
+            <div class="text-5xl md:text-6xl mb-2">🏆</div>
+            <h1 id="game-title-display" class="text-4xl md:text-6xl font-bold text-yellow-400 uppercase tracking-wider leading-tight">Gado-Gado<br>Malaysia</h1>
         </div>
-        <button onclick="startAudio()" class="btn-pulse px-12 py-4 bg-green-600 text-white font-bold rounded-full text-3xl border-2 border-transparent transition cursor-pointer">
+        <button type="button" onclick="startAudio()" class="btn-pulse px-10 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-full text-2xl md:text-3xl border-2 border-transparent transition cursor-pointer">
             🎵 Mula Bermain
         </button>
-        <button onclick="openSettings()" class="mt-8 px-6 py-2 border border-gray-600 text-gray-400 hover:text-yellow-400 hover:border-yellow-400 rounded-full text-lg transition shadow-lg bg-black bg-opacity-50">
-            ⚙️ Tetapan
+        <button type="button" onclick="openSettings()" class="mt-5 px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-yellow-500 rounded-full text-base md:text-lg font-semibold shadow-[0_0_10px_rgba(255,180,0,0.35)] transition transform hover:scale-105 flex items-center gap-2 cursor-pointer">
+            <span>⚙️</span> <span>Tetapan</span>
         </button>
     </div>
 
-    <!-- Header / Scoreboard (Compact 4:3) -->
+    <!-- Header / Scoreboard (Padat 4:3) -->
     <header class="w-full bg-black bg-opacity-40 shadow-lg flex justify-center shrink-0">
-        <div class="w-full max-w-5xl flex justify-between items-center p-2 md:p-3">
-            <!-- Team 1 -->
-            <div id="team1-container" class="text-center w-1/3 team-container active-team bg-blue-800 bg-opacity-60 flex flex-col justify-center" onclick="setTurn(1)" title="Klik untuk tukar giliran secara manual">
-                <div id="team1-strikes" class="text-red-500 text-2xl md:text-3xl font-bold h-6 md:h-8 tracking-[0.2em] leading-none" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
-                <h2 id="team1-name" class="text-xl md:text-2xl font-bold text-blue-100 uppercase tracking-wider drop-shadow-md leading-none mt-1">Kumpulan 1</h2>
-                <div id="team1-score" class="text-4xl md:text-5xl font-bold text-white mt-1 drop-shadow-lg leading-none">0</div>
+        <div class="w-full max-w-5xl flex justify-between items-center px-3 py-2 md:px-4 md:py-2.5 gap-2">
+            <!-- Kumpulan 1 -->
+            <div id="team1-container" class="text-center w-1/3 team-container active-team bg-blue-800 bg-opacity-60 flex flex-col justify-center" onclick="setTurn(1)" title="Klik untuk tukar giliran ke Kumpulan 1">
+                <div id="team1-strikes" class="text-red-500 text-xl md:text-2xl font-bold h-6 tracking-[0.2em] leading-none" style="text-shadow: 2px 2px 0 #000;"></div>
+                <h2 id="team1-name" class="text-lg md:text-2xl font-bold text-blue-100 uppercase tracking-wider drop-shadow-md leading-tight truncate">Kumpulan 1</h2>
+                <div id="team1-score" class="text-3xl md:text-5xl font-bold text-white leading-none mt-0.5 drop-shadow-lg">0</div>
             </div>
 
-            <!-- Pot -->
+            <!-- Pot Pusingan -->
             <div class="text-center w-1/3 flex flex-col items-center justify-center">
-                <div class="text-3xl md:text-4xl mb-1 drop-shadow-lg opacity-80 leading-none">🏆</div>
-                <h1 class="text-lg md:text-xl font-bold text-yellow-400 mb-1 leading-none">MARKAH PUSINGAN</h1>
-                <div id="round-pot" class="text-3xl md:text-4xl font-bold bg-white text-black px-4 py-1 border-4 border-yellow-400 rounded-lg inline-block shadow-[0_0_15px_rgba(255,180,0,0.6)] leading-none">0</div>
+                <div class="text-2xl md:text-3xl leading-none mb-0.5">🏆</div>
+                <h1 class="text-sm md:text-lg font-bold text-yellow-400 leading-tight uppercase">Markah Pusingan</h1>
+                <div id="round-pot" class="text-2xl md:text-4xl font-bold bg-white text-black px-4 py-0.5 mt-1 border-2 border-yellow-400 rounded-lg inline-block shadow-[0_0_12px_rgba(255,180,0,0.6)] leading-tight">0</div>
             </div>
 
-            <!-- Team 2 -->
-            <div id="team2-container" class="text-center w-1/3 team-container bg-orange-800 bg-opacity-60 flex flex-col justify-center" onclick="setTurn(2)" title="Klik untuk tukar giliran secara manual">
-                <div id="team2-strikes" class="text-red-500 text-2xl md:text-3xl font-bold h-6 md:h-8 tracking-[0.2em] leading-none" style="text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;"></div>
-                <h2 id="team2-name" class="text-xl md:text-2xl font-bold text-orange-100 uppercase tracking-wider drop-shadow-md leading-none mt-1">Kumpulan 2</h2>
-                <div id="team2-score" class="text-4xl md:text-5xl font-bold text-white mt-1 drop-shadow-lg leading-none">0</div>
+            <!-- Kumpulan 2 -->
+            <div id="team2-container" class="text-center w-1/3 team-container bg-orange-800 bg-opacity-60 flex flex-col justify-center" onclick="setTurn(2)" title="Klik untuk tukar giliran ke Kumpulan 2">
+                <div id="team2-strikes" class="text-red-500 text-xl md:text-2xl font-bold h-6 tracking-[0.2em] leading-none" style="text-shadow: 2px 2px 0 #000;"></div>
+                <h2 id="team2-name" class="text-lg md:text-2xl font-bold text-orange-100 uppercase tracking-wider drop-shadow-md leading-tight truncate">Kumpulan 2</h2>
+                <div id="team2-score" class="text-3xl md:text-5xl font-bold text-white leading-none mt-0.5 drop-shadow-lg">0</div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content (Compact 4:3) -->
-    <main class="flex-grow w-full max-w-5xl mx-auto flex flex-col items-center justify-center p-2">
-        <div class="mb-4 text-center max-w-4xl w-full px-4">
-            <h3 class="text-lg text-gray-300 uppercase tracking-widest mb-1 leading-none">Pusingan <span id="round-number">1</span></h3>
-            <h2 id="question-text" class="text-2xl md:text-4xl font-semibold text-yellow-100 mb-2 drop-shadow-md"></h2>
-            
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-5xl mx-auto flex flex-col items-center justify-center px-3 py-2 overflow-y-auto">
+        <!-- Question Text & Timer -->
+        <div class="mb-3 text-center max-w-4xl w-full px-2">
+            <h3 class="text-sm md:text-base text-gray-300 uppercase tracking-widest leading-none mb-1">
+                Pusingan <span id="round-number">1</span> / <span id="total-rounds-display">5</span>
+            </h3>
+            <h2 id="question-text" class="text-xl md:text-3xl font-semibold text-yellow-100 leading-snug drop-shadow-md"></h2>
+
             <div class="q-timer-container max-w-2xl mx-auto mt-2">
                 <div id="q-timer-bar" class="q-timer-bar"></div>
             </div>
-            <div id="q-timer-text" class="text-sm font-bold mt-1 text-gray-300 tracking-wider">MASA: 30s</div>
+            <div id="q-timer-text" class="text-xs md:text-sm font-bold mt-1 text-gray-300 tracking-wider">MASA: 30s</div>
         </div>
 
-        <div class="board-container p-6 w-full max-w-5xl">
-            <div id="board" class="grid grid-cols-2 gap-4">
-                <!-- Cards injected here -->
+        <!-- Game Board Grid -->
+        <div class="board-container p-3 md:p-5 w-full max-w-5xl">
+            <div id="board" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 md:gap-3.5">
+                <!-- Cards injected via JS -->
             </div>
         </div>
     </main>
 
-    <!-- Host Controls (Compact 4:3) -->
+    <!-- Host Controls Footer (Sebaris, Padat & Mudah Ditekan) -->
     <footer class="w-full bg-black bg-opacity-60 border-t border-gray-700 flex justify-center relative z-10 shrink-0">
-        <div class="w-full max-w-5xl p-3 flex flex-row items-center justify-between">
-            <div class="flex space-x-2 md:space-x-4">
-                <button onclick="showStrike()" class="px-5 py-2 md:px-8 md:py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full md:text-xl shadow-[0_0_10px_red] transition transform hover:scale-105">
+        <div class="w-full max-w-5xl px-2 py-2 md:px-4 md:py-2.5 flex flex-row items-center justify-between gap-2 overflow-x-auto">
+            <div class="flex items-center gap-1.5 md:gap-2.5 shrink-0">
+                <button type="button" onclick="showStrike()" class="px-3 py-2 md:px-5 md:py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-full text-xs sm:text-sm md:text-base shadow-[0_0_10px_rgba(220,38,38,0.6)] transition transform hover:scale-105 whitespace-nowrap">
                     ❌ STRIKE
                 </button>
-                <button onclick="nextRound()" id="btn-next-round" class="px-5 py-2 md:px-8 md:py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full md:text-xl shadow-[0_0_10px_green] transition transform hover:scale-105">
-                    SETERUSNYA ➡️
+                <button type="button" onclick="nextRound()" id="btn-next-round" class="px-3 py-2 md:px-5 md:py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-full text-xs sm:text-sm md:text-base shadow-[0_0_10px_rgba(22,163,74,0.6)] transition transform hover:scale-105 whitespace-nowrap">
+                    <span class="relative z-10">SETERUSNYA ➡️</span>
                 </button>
-                <button onclick="toggleBGM()" id="bgm-btn" class="px-4 py-2 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full md:text-xl shadow-[0_0_10px_blue] transition transform hover:scale-105 hidden">
-                    🔊 BGM
+                <button type="button" onclick="togglePauseGame()" id="btn-pause-resume" class="px-3 py-2 md:px-4 md:py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-full text-xs sm:text-sm md:text-base shadow-[0_0_10px_rgba(245,158,11,0.6)] transition transform hover:scale-105 whitespace-nowrap">
+                    ⏸️ <span class="hidden sm:inline">Henti</span>
+                </button>
+                <button type="button" onclick="toggleBGM()" id="bgm-btn" class="px-3 py-2 md:px-4 md:py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-full text-xs sm:text-sm md:text-base shadow-[0_0_10px_rgba(37,99,235,0.6)] transition transform hover:scale-105 hidden whitespace-nowrap">
+                    🔊 <span class="hidden sm:inline">BGM</span>
                 </button>
             </div>
-            <div>
-                <button onclick="openSettings()" class="text-yellow-400 hover:text-yellow-300 text-sm md:text-base font-semibold bg-gray-800 border border-yellow-600 px-4 py-2 rounded-full shadow-[0_0_5px_rgba(255,180,0,0.5)] transition transform hover:scale-105 flex items-center gap-2">
+            <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+                <button type="button" onclick="openSettings()" class="text-yellow-400 hover:text-yellow-300 text-xs sm:text-sm md:text-base font-semibold bg-gray-800 border border-yellow-600 px-3 py-2 md:px-4 rounded-full shadow-[0_0_6px_rgba(255,180,0,0.45)] transition transform hover:scale-105 flex items-center gap-1.5 whitespace-nowrap" title="Tetapan Permainan">
                     ⚙️ <span class="hidden md:inline">Tetapan</span>
+                </button>
+                <button type="button" onclick="confirmExitToIntro()" class="text-red-200 hover:text-white text-xs sm:text-sm md:text-base font-semibold bg-red-900 bg-opacity-80 hover:bg-red-700 border border-red-500 px-3 py-2 md:px-4 rounded-full shadow-[0_0_6px_rgba(239,68,68,0.45)] transition transform hover:scale-105 flex items-center gap-1.5 whitespace-nowrap" title="Keluar ke Skrin Utama">
+                    🚪 <span class="hidden md:inline">Keluar</span>
                 </button>
             </div>
         </div>
@@ -395,20 +471,20 @@
 
     <!-- Strike Overlay -->
     <div id="strike-overlay">
-        <div id="strike-container" class="flex space-x-8">
+        <div id="strike-container" class="flex space-x-6">
             <div class="strike-x">X</div>
         </div>
     </div>
 
     <!-- Winner Overlay -->
-    <div id="winner-overlay" class="hidden fixed inset-0 bg-black bg-opacity-95 z-[200] flex-col items-center justify-center text-center overflow-hidden">
+    <div id="winner-overlay" class="hidden fixed inset-0 bg-black bg-opacity-95 z-[200] flex-col items-center justify-center text-center overflow-hidden p-4">
         <canvas id="fireworks-canvas" class="absolute inset-0 w-full h-full z-0 pointer-events-none"></canvas>
         <div class="relative z-10 flex flex-col items-center justify-center">
-            <h2 class="text-4xl text-white mb-2 font-semibold tracking-widest uppercase shadow-black drop-shadow-md">Tahniah!</h2>
-            <h1 id="winner-name-display" class="text-7xl md:text-9xl font-bold mb-4 uppercase tracking-widest winner-text text-rgb-pulse">JUARA</h1>
-            <p id="winner-score-display" class="text-3xl md:text-5xl text-white mb-8 font-bold tracking-wider drop-shadow-md bg-black bg-opacity-60 px-8 py-3 rounded-lg border-2 border-yellow-400 shadow-[0_0_15px_rgba(255,180,0,0.5)]">Markah: 0</p>
-            <button onclick="closeWinnerPopup()" class="mt-10 px-8 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-full text-xl transition transform hover:scale-105 border border-gray-500 shadow-lg relative z-20">
-                Kembali (Tamat)
+            <h2 class="text-3xl md:text-4xl text-white mb-2 font-semibold tracking-widest uppercase drop-shadow-md">Tahniah!</h2>
+            <h1 id="winner-name-display" class="text-5xl md:text-8xl font-bold mb-4 uppercase tracking-widest text-rgb-pulse">JUARA</h1>
+            <p id="winner-score-display" class="text-2xl md:text-4xl text-white mb-8 font-bold tracking-wider drop-shadow-md bg-black bg-opacity-60 px-6 py-3 rounded-xl border-2 border-yellow-400 shadow-[0_0_15px_rgba(255,180,0,0.5)]">Markah: 0</p>
+            <button type="button" onclick="returnToIntro()" class="px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-full text-xl transition transform hover:scale-105 shadow-lg">
+                🏠 Kembali ke Skrin Utama
             </button>
         </div>
     </div>
@@ -416,152 +492,270 @@
     <!-- Audio Elements -->
     <audio id="bgm-audio" loop></audio>
     <audio id="victory-audio"></audio>
+    <audio id="preview-audio"></audio>
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 bg-black bg-opacity-95 z-[150] overflow-y-auto">
-        <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="bg-gray-800 text-white w-full max-w-5xl p-6 rounded-lg shadow-2xl border border-gray-600">
-                <div class="flex justify-between items-center mb-6 border-b border-gray-600 pb-4">
+        <div class="min-h-screen flex items-center justify-center p-3 md:p-5">
+            <div class="bg-gray-800 text-white w-full max-w-5xl p-4 md:p-6 rounded-xl shadow-2xl border border-gray-600">
+                <!-- Modal Header -->
+                <div class="flex flex-wrap justify-between items-center gap-3 mb-5 border-b border-gray-600 pb-4">
                     <div class="flex items-baseline space-x-3">
-                        <h2 class="text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
-                        <span class="text-sm font-semibold text-gray-400 bg-gray-700 px-2 py-1 rounded">v3.0</span>
+                        <h2 class="text-2xl md:text-3xl font-bold text-yellow-400">⚙️ Tetapan Permainan</h2>
+                        <span class="text-xs md:text-sm font-semibold text-gray-300 bg-gray-700 px-2.5 py-0.5 rounded-full">v3.3</span>
                     </div>
-                    <button onclick="closeSettings()" class="text-gray-400 hover:text-white text-4xl leading-none">&times;</button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="openHostView()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg text-sm md:text-base shadow-[0_0_10px_rgba(99,102,241,0.55)] transition flex items-center gap-2">
+                            <span>📱</span> <span>Skrin Kawalan Hos</span>
+                        </button>
+                        <button type="button" onclick="closeSettings()" class="text-gray-400 hover:text-white text-3xl leading-none px-2">&times;</button>
+                    </div>
                 </div>
 
-                <div class="mb-4 bg-green-900 p-4 rounded border border-green-700 shadow-inner">
-                    <h3 class="text-yellow-300 font-bold mb-2">💡 Tips Permainan & Hotkey:</h3>
-                    <ul class="list-disc pl-5 text-sm text-gray-200 space-y-1">
-                        <li>Gunakan butang nombor pada papan kekunci (<strong>1 - 8</strong>) untuk membuka kad jawapan secara pantas.</li>
-                        <li>Tekan butang huruf <strong>'X'</strong> pada papan kekunci untuk efek <strong>STRIKE (Salah)</strong> secara automatik.</li>
-                        <li>Klik pada nama kumpulan pada papan markah untuk menukar giliran aktif mereka.</li>
+                <!-- Tips Permainan -->
+                <div class="mb-4 bg-green-900 bg-opacity-60 p-3.5 rounded-lg border border-green-700">
+                    <h3 class="text-yellow-300 font-bold mb-1.5 text-base">💡 Tips Permainan & Hotkey:</h3>
+                    <ul class="list-disc pl-5 text-xs md:text-sm text-gray-200 space-y-1">
+                        <li>Tekan nombor <strong>1 - 8</strong> pada papan kekunci untuk membuka kad jawapan secara pantas.</li>
+                        <li>Tekan huruf <strong>'X'</strong> untuk efek <strong>STRIKE (Salah)</strong>.</li>
+                        <li>Klik kotak nama kumpulan pada papan markah untuk menukar giliran secara manual.</li>
+                        <li>Gunakan <strong>📱 Skrin Kawalan Hos</strong> untuk kawalan sentuhan masa nyata dari telefon/tablet.</li>
                     </ul>
                 </div>
 
-                <div class="text-sm text-gray-200 mb-4 bg-blue-900 p-3 rounded border border-blue-700">
-                    ℹ️ Markah telah <strong>dikunci secara seragam</strong> (50, 40, 30...). Cloud Sync memastikan peranti berlainan membaca soalan yang sama.
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <!-- Tema & Nama -->
-                    <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col justify-center gap-4">
+                <!-- Tetapan Umum & Audio -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <!-- Tajuk, Nama Kumpulan & Tema -->
+                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col gap-3">
                         <div>
-                            <label class="block text-yellow-400 font-bold text-lg mb-2">🏷️ Tajuk Permainan</label>
-                            <textarea id="setting-game-title" rows="2" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 resize-none text-center"></textarea>
+                            <label class="block text-yellow-400 font-bold text-base mb-1">🏷️ Tajuk Permainan</label>
+                            <textarea id="setting-game-title" rows="2" placeholder="Cth: Gado-Gado&#10;Malaysia" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400 resize-none text-center"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-blue-300 font-bold text-sm mb-1">Kumpulan 1</label>
+                                <input type="text" id="setting-t1-name" placeholder="Kumpulan 1" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400">
+                            </div>
+                            <div>
+                                <label class="block text-orange-300 font-bold text-sm mb-1">Kumpulan 2</label>
+                                <input type="text" id="setting-t2-name" placeholder="Kumpulan 2" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400">
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-yellow-400 font-bold text-lg mb-2">👥 Nama Kumpulan</label>
-                            <input type="text" id="setting-t1-name" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 mb-3 focus:outline-none focus:border-yellow-400">
-                            <input type="text" id="setting-t2-name" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400">
-                        </div>
-                        <div>
-                            <label class="block text-yellow-400 font-bold text-lg mb-2">🎨 Tema Warna</label>
-                            <select id="setting-theme" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
-                                <option value="classic">Biru Klasik (Lalaian)</option>
+                            <label class="block text-yellow-400 font-bold text-base mb-1">🎨 Tema Warna</label>
+                            <select id="setting-theme" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                                <option value="classic">Biru Klasik (Lalai)</option>
                                 <option value="neon">Ungu Neon (Misteri)</option>
                                 <option value="emerald">Hijau Zamrud (Alam)</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Audio -->
-                    <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col gap-3">
+                    <!-- Audio Tersuai dengan Prebiu -->
+                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700 flex flex-col gap-3">
                         <div>
-                            <label class="block text-yellow-400 font-bold text-lg mb-1">🎵 Audio Tersuai</label>
-                            <p class="text-xs text-gray-400 mb-2">Gunakan URL (MP3) atau fail PC tempatan.</p>
+                            <label class="block text-yellow-400 font-bold text-base">🎵 Audio Tersuai</label>
+                            <p class="text-xs text-gray-400">Gunakan pautan URL (MP3) atau fail tempatan dari peranti anda.</p>
                         </div>
-                        <div class="bg-gray-900 p-2 rounded border border-gray-700">
-                            <span class="text-sm font-semibold text-gray-300 block mb-1">Muzik Latar (BGM):</span>
-                            <div class="flex flex-col xl:flex-row gap-2 mb-2">
-                                <input type="text" id="bgm-url" placeholder="URL BGM" class="flex-grow bg-gray-700 border border-gray-500 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-yellow-400">
-                                <input type="file" id="bgm-file" accept="audio/*" class="w-full xl:w-auto text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer">
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button" onclick="previewAudio('bgm')" class="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold shadow">▶️ Prebiu</button>
-                                <button type="button" onclick="stopPreview()" class="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs font-semibold shadow">⏹️ Stop</button>
+
+                        <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 space-y-2">
+                            <span class="text-sm font-semibold text-gray-200 block">Muzik Latar (BGM):</span>
+                            <input type="text" id="bgm-url" placeholder="URL MP3 BGM" class="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded px-2.5 py-1.5 focus:outline-none focus:border-yellow-400">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <input type="file" id="bgm-file" accept="audio/*" class="text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer max-w-[200px]">
+                                <div class="flex gap-1.5">
+                                    <button type="button" onclick="previewAudio('bgm')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded transition">▶️ Prebiu</button>
+                                    <button type="button" onclick="stopPreview()" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded transition">⏹️ Stop</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-gray-900 p-2 rounded border border-gray-700">
-                            <span class="text-sm font-semibold text-gray-300 block mb-1">Lagu Kemenangan:</span>
-                            <div class="flex flex-col xl:flex-row gap-2 mb-2">
-                                <input type="text" id="victory-url" placeholder="URL Kemenangan" class="flex-grow bg-gray-700 border border-gray-500 text-white text-sm rounded px-2 py-1 focus:outline-none focus:border-yellow-400">
-                                <input type="file" id="victory-file" accept="audio/*" class="w-full xl:w-auto text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer">
-                            </div>
-                            <div class="flex gap-2">
-                                <button type="button" onclick="previewAudio('victory')" class="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold shadow">▶️ Prebiu</button>
-                                <button type="button" onclick="stopPreview()" class="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs font-semibold shadow">⏹️ Stop</button>
+
+                        <div class="bg-gray-800 p-3 rounded-lg border border-gray-700 space-y-2">
+                            <span class="text-sm font-semibold text-gray-200 block">Lagu Kemenangan:</span>
+                            <input type="text" id="victory-url" placeholder="URL MP3 Kemenangan" class="w-full bg-gray-700 border border-gray-600 text-white text-sm rounded px-2.5 py-1.5 focus:outline-none focus:border-yellow-400">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <input type="file" id="victory-file" accept="audio/*" class="text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-yellow-400 file:text-black hover:file:bg-yellow-500 cursor-pointer max-w-[200px]">
+                                <div class="flex gap-1.5">
+                                    <button type="button" onclick="previewAudio('victory')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded transition">▶️ Prebiu</button>
+                                    <button type="button" onclick="stopPreview()" class="px-2.5 py-1 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded transition">⏹️ Stop</button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Preset -->
-                <div class="bg-gray-800 p-4 rounded border border-gray-600 flex flex-col gap-4 mb-8">
-                    <label class="block text-yellow-400 font-bold text-lg">📁 Pengurusan Preset Soalan & Pusingan</label>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                        <div>
-                            <span class="text-sm font-semibold text-gray-300 block mb-1">Pilih Slot Preset:</span>
-                            <select id="preset-selector" onchange="handlePresetChange()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer"></select>
+                <!-- Pengurusan Preset Soalan (Auto-Sync Real-Time) -->
+                <div class="bg-gray-900 p-4 rounded-lg border border-yellow-600 border-opacity-60 flex flex-col gap-3 mb-5">
+                    <div class="flex flex-wrap justify-between items-center gap-2">
+                        <label class="text-yellow-400 font-bold text-lg">📁 Pengurusan Preset Soalan (Auto-Simpan & Auto-Muat)</label>
+                        <span class="text-xs text-emerald-400 font-semibold">☁️ Diselaras secara masa nyata</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                        <div class="md:col-span-4">
+                            <span class="text-xs font-semibold text-gray-300 block mb-1">Pilih Slot Preset:</span>
+                            <select id="preset-selector" onchange="onPresetChange()" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer"></select>
                         </div>
-                        <div>
-                            <span class="text-sm font-semibold text-gray-300 block mb-1">Nama Preset:</span>
-                            <input type="text" id="preset-name" oninput="updatePresetName()" onchange="savePresetsToStorage()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400" title="Taip untuk ubah nama preset secara automatik">
+                        <div class="md:col-span-3">
+                            <span class="text-xs font-semibold text-gray-300 block mb-1">Nama Preset:</span>
+                            <input type="text" id="preset-name" oninput="onPresetNameInput()" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400">
                         </div>
-                        <div>
-                            <span class="text-sm font-semibold text-gray-300 block mb-1">Jumlah Pusingan:</span>
-                            <select id="setting-total-rounds" onchange="handleTotalRoundsChange()" class="w-full bg-gray-700 border border-gray-500 text-white rounded px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
+                        <div class="md:col-span-3">
+                            <span class="text-xs font-semibold text-gray-300 block mb-1">🔢 Jumlah Pusingan:</span>
+                            <select id="setting-total-rounds" onchange="onTotalRoundsChange()" class="w-full bg-gray-800 border border-gray-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:border-yellow-400 cursor-pointer">
                                 <option value="2">2 Pusingan</option>
                                 <option value="3">3 Pusingan</option>
                                 <option value="4">4 Pusingan</option>
-                                <option value="5" selected>5 Pusingan</option>
+                                <option value="5">5 Pusingan</option>
                             </select>
                         </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button type="button" id="btn-delete-preset" onclick="deleteSelectedPreset()" class="w-full px-2 py-2 bg-red-600 hover:bg-red-500 rounded text-white font-semibold transition shadow-[0_0_5px_red]">Kosongkan (Padam)</button>
+                        <div class="md:col-span-2">
+                            <button type="button" id="btn-delete-preset" onclick="clearCurrentPreset()" class="w-full px-3 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-bold text-sm transition shadow-[0_0_8px_rgba(220,38,38,0.5)]">
+                                🗑️ Kosongkan
+                            </button>
                         </div>
                     </div>
+                    <p class="text-xs text-gray-400">Setiap pertukaran preset akan menyimpan soalan semasa dan memuatkan soalan baharu secara automatik. Markah jawapan dikunci seragam (50, 40, 30, 20, 15, 10, 5, 2).</p>
                 </div>
 
-                <div id="settings-form-container" class="space-y-8"></div>
-                
-                <div class="mt-8 flex flex-col lg:flex-row justify-between border-t border-gray-600 pt-6 gap-4">
+                <!-- Borang Soalan & Jawapan -->
+                <div id="settings-form-container" class="space-y-5 rounded-xl transition"></div>
+
+                <!-- Butang Tindakan Bawah -->
+                <div class="mt-6 flex flex-col lg:flex-row justify-between border-t border-gray-600 pt-5 gap-3">
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="requestResetToDefault()" class="px-4 py-2 bg-red-800 hover:bg-red-700 rounded font-semibold text-white transition">Reset ke Asal</button>
-                        <button onclick="printQuestions()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded font-semibold text-white transition shadow-[0_0_10px_blue] transform hover:scale-105">🖨️ Cetak Soalan</button>
-                        <button id="btn-restart" onclick="requestRestartGame()" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-semibold text-white transition shadow-[0_0_10px_yellow] transform hover:scale-105">🔄 Mula Semula (Restart)</button>
+                        <button type="button" onclick="requestResetToDefault()" class="px-4 py-2 bg-red-800 hover:bg-red-700 rounded-lg font-semibold text-white text-sm transition">Reset ke Asal</button>
+                        <button type="button" onclick="printQuestions()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold text-white text-sm transition">🖨️ Cetak Soalan (Host)</button>
+                        <button type="button" id="btn-restart" onclick="requestRestartGame()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 rounded-lg font-semibold text-white text-sm transition">🔄 Mula Semula</button>
                     </div>
                     <div class="flex flex-wrap gap-2 lg:justify-end">
-                        <button onclick="closeSettings()" class="px-6 py-2 bg-gray-600 hover:bg-gray-500 rounded font-semibold transition">Batal</button>
-                        <button onclick="saveSettings()" class="px-8 py-2 bg-green-600 hover:bg-green-500 rounded font-semibold text-lg shadow-[0_0_10px_green] transition transform hover:scale-105">💾 Simpan Tetapan</button>
+                        <button type="button" onclick="closeSettings()" class="px-5 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg font-semibold text-sm transition">Batal</button>
+                        <button type="button" onclick="saveSettings()" class="px-7 py-2 bg-green-600 hover:bg-green-500 rounded-lg font-bold text-base shadow-[0_0_12px_rgba(22,163,74,0.6)] transition transform hover:scale-105">💾 Simpan & Mula Semula</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Custom Alert/Confirm Modal -->
-    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-[0.95] z-[300] flex items-center justify-center p-4">
-        <div class="bg-gray-800 border-2 border-yellow-500 rounded-xl p-6 max-w-lg w-full text-center shadow-[0_0_20px_rgba(255,180,0,0.5)]">
-            <h3 id="custom-modal-title" class="text-2xl font-bold text-yellow-400 mb-4">Perhatian</h3>
-            <p id="custom-modal-msg" class="text-white text-lg mb-6"></p>
-            <div id="custom-modal-actions" class="flex justify-center space-x-4">
-                <button id="custom-modal-cancel" class="hidden px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded font-bold transition">Batal</button>
-                <button id="custom-modal-ok" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold transition shadow-[0_0_10px_blue]">OK</button>
+    <!-- Sub-Tetingkap Skrin Kawalan Hos (Remote Controller Mesra Telefon/Tablet) -->
+    <div id="host-view-modal" class="hidden fixed inset-0 bg-gray-950 z-[160] flex flex-col h-screen overflow-hidden">
+        <!-- Host Top Bar -->
+        <div class="bg-gray-900 border-b border-gray-700 px-3 py-2.5 flex flex-wrap items-center justify-between gap-2 shrink-0 shadow-lg">
+            <div class="flex items-center gap-2">
+                <span class="text-2xl">📱</span>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-base md:text-xl font-bold text-yellow-400 leading-tight uppercase tracking-wide">Skrin Kawalan Hos</h2>
+                        <span id="host-game-status-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-gray-700 text-gray-200 border border-gray-500 uppercase tracking-wider">⚪ Belum Mula</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs mt-0.5">
+                        <span id="host-sync-status" class="text-emerald-400 font-semibold">🟢 Sedia (Masa Nyata)</span>
+                        <span class="text-gray-500">•</span>
+                        <span id="host-round-badge" class="text-blue-300 font-bold uppercase">Pusingan 1 / 5</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="returnToSettingsFromHost()" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-yellow-400 border border-yellow-500 rounded-lg text-xs md:text-sm font-bold transition active:scale-95 flex items-center gap-1">
+                    <span>⚙️</span> <span>Tetapan</span>
+                </button>
+                <button type="button" onclick="closeHostView()" class="px-3 py-1.5 bg-gray-800 hover:bg-red-700 text-gray-300 hover:text-white border border-gray-600 rounded-lg text-xs md:text-sm font-bold transition active:scale-95" title="Tutup Skrin Hos">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- Host Main Area (Skor Ringkas + Soalan + Senarai Jawapan Sentuhan) -->
+        <div class="flex-grow overflow-y-auto p-3 md:p-4 max-w-4xl w-full mx-auto space-y-3">
+            <!-- Mini Scoreboard (Sentuh untuk tukar giliran) -->
+            <div class="grid grid-cols-3 gap-2 text-center">
+                <button type="button" id="host-t1-card" onclick="hostSendAction('setTurn', { team: 1 })" class="p-2.5 rounded-xl bg-blue-900 bg-opacity-70 border-2 border-yellow-400 transition active:scale-95 text-left">
+                    <div class="flex justify-between items-center">
+                        <span id="host-t1-name" class="text-xs md:text-sm font-bold text-blue-200 uppercase truncate">Kumpulan 1</span>
+                        <span id="host-t1-strikes" class="text-xs text-red-400 font-bold"></span>
+                    </div>
+                    <div id="host-t1-score" class="text-2xl md:text-3xl font-bold text-white leading-tight">0</div>
+                </button>
+                <div class="p-2.5 rounded-xl bg-gray-900 border border-gray-700 flex flex-col items-center justify-center">
+                    <span class="text-[11px] md:text-xs text-yellow-400 uppercase font-bold">Markah Pusingan</span>
+                    <div id="host-pot" class="text-2xl md:text-3xl font-bold text-white leading-tight">0</div>
+                </div>
+                <button type="button" id="host-t2-card" onclick="hostSendAction('setTurn', { team: 2 })" class="p-2.5 rounded-xl bg-orange-900 bg-opacity-70 border-2 border-transparent transition active:scale-95 text-left">
+                    <div class="flex justify-between items-center">
+                        <span id="host-t2-name" class="text-xs md:text-sm font-bold text-orange-200 uppercase truncate">Kumpulan 2</span>
+                        <span id="host-t2-strikes" class="text-xs text-red-400 font-bold"></span>
+                    </div>
+                    <div id="host-t2-score" class="text-2xl md:text-3xl font-bold text-white leading-tight">0</div>
+                </button>
+            </div>
+
+            <!-- Soalan Semasa -->
+            <div class="bg-gray-900 border border-gray-700 rounded-xl p-3 text-center">
+                <div class="text-xs text-gray-400 uppercase tracking-wider mb-0.5">Soalan Semasa (Sentuh Jawapan Untuk Dedahkan)</div>
+                <div id="host-question-text" class="text-lg md:text-2xl font-bold text-yellow-200 leading-snug"></div>
+            </div>
+
+            <!-- Senarai Butang Jawapan (1-8) -->
+            <div id="host-answers-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <!-- Disuntik oleh JS -->
+            </div>
+        </div>
+
+        <!-- Host Bottom Control Dock -->
+        <div class="bg-gray-900 border-t border-gray-700 p-2.5 md:p-3 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.6)]">
+            <div class="max-w-4xl mx-auto space-y-2">
+                <!-- Baris 1: Kawalan Sesi Permainan (Mula, Henti/Sambung, Keluar) -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" id="host-btn-start" onclick="hostSendAction('startGame')" class="py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-xl text-sm md:text-base shadow-[0_0_10px_rgba(16,185,129,0.45)] transition flex items-center justify-center gap-1.5">
+                        <span>▶️</span> <span>Mula</span>
+                    </button>
+                    <button type="button" id="host-btn-pause" onclick="hostSendAction('togglePause')" class="py-2.5 px-3 bg-amber-600 hover:bg-amber-500 active:scale-95 text-white font-bold rounded-xl text-sm md:text-base shadow-[0_0_10px_rgba(245,158,11,0.45)] transition flex items-center justify-center gap-1.5">
+                        <span>⏸️</span> <span>Henti</span>
+                    </button>
+                    <button type="button" onclick="hostConfirmExit()" class="py-2.5 px-3 bg-red-800 hover:bg-red-700 active:scale-95 text-white border border-red-500 font-bold rounded-xl text-sm md:text-base transition flex items-center justify-center gap-1.5">
+                        <span>🚪</span> <span>Keluar</span>
+                    </button>
+                </div>
+                <!-- Baris 2: Kawalan Pusingan & Audio -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button type="button" onclick="hostSendAction('strike')" class="py-2.5 px-3 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold rounded-xl text-sm md:text-base shadow-[0_0_10px_rgba(220,38,38,0.45)] transition flex items-center justify-center gap-1.5">
+                        <span>❌</span> <span>STRIKE</span>
+                    </button>
+                    <button type="button" id="host-btn-next" onclick="hostSendAction('nextRound')" class="py-2.5 px-3 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-bold rounded-xl text-sm md:text-base shadow-[0_0_10px_rgba(22,163,74,0.45)] transition flex items-center justify-center gap-1.5">
+                        <span>SETERUSNYA</span> <span>➡️</span>
+                    </button>
+                    <button type="button" id="host-bgm-btn" onclick="hostSendAction('toggleBGM')" class="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold rounded-xl text-sm md:text-base shadow-[0_0_10px_rgba(37,99,235,0.45)] transition flex items-center justify-center gap-1.5">
+                        <span>🔊</span> <span>BGM (ON)</span>
+                    </button>
+                    <button type="button" onclick="returnToSettingsFromHost()" class="py-2.5 px-3 bg-gray-700 hover:bg-gray-600 active:scale-95 text-yellow-300 border border-yellow-500 font-bold rounded-xl text-sm md:text-base transition flex items-center justify-center gap-1.5">
+                        <span>⚙️</span> <span>Tetapan</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Custom Alert / Confirm Modal -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-[300] flex items-center justify-center p-4">
+        <div class="bg-gray-800 border-2 border-yellow-500 rounded-xl p-6 max-w-md w-full text-center shadow-[0_0_24px_rgba(255,180,0,0.45)]">
+            <h3 id="custom-modal-title" class="text-2xl font-bold text-yellow-400 mb-3">Makluman</h3>
+            <p id="custom-modal-msg" class="text-white text-base md:text-lg mb-6 whitespace-pre-line"></p>
+            <div class="flex justify-center space-x-3">
+                <button type="button" id="custom-modal-cancel" class="hidden px-5 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg font-bold transition">Batal</button>
+                <button type="button" id="custom-modal-ok" class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition shadow-[0_0_10px_rgba(37,99,235,0.5)]">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
     <div id="toast-container"></div>
 
-    <!-- Firebase 10.12.2 -->
+    <!-- Integrasi Firebase Cloud Sync (Single Source of Truth) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // UNTUK MENYELARAS DATA ANTARA TELEFON PINTAR & KOMPUTER:
-        // Anda WAJIB menggantikan tetapan di bawah dengan konfigurasi projek Firebase anda sendiri.
-        // Pastikan Firestore Rules anda ditetapkan kepada: allow read, write: if true;
+        // Konfigurasi Firebase (Gunakan konfigurasi persekitaran atau gantikan dengan konfigurasi projek anda)
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "AIzaSyDSqblFdWXAIg9IFV3EZN-iLKXhfkL0c2g",
             authDomain: "mysmartapps.firebaseapp.com",
@@ -571,99 +765,247 @@
             appId: "1:329775742642:web:e6ecf9a886ba4ddbbcd3ab"
         };
 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gado-gado-my-app';
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        
-        // Tetapan ID Mutlak (Hardcoded) supaya PC dan Web tepat merujuk dokumen yang sama
-        const appId = 'GadoGadoApp_MasterDB_Public';
 
         window.firebaseIsReady = false;
+        window.firebaseUserId = null;
 
-        async function initAuth() {
+        // Laluan Awam Berpusat (Genap & Mematuhi Peraturan Laluan Firestore)
+        const getMasterDocRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'gadoGadoSync', 'masterData');
+        const getLiveStateRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'gadoGadoSync', 'liveState');
+        const getLiveCmdRef = () => doc(db, 'artifacts', appId, 'public', 'data', 'gadoGadoSync', 'liveCommand');
+
+        let unsubState = null;
+        let unsubCmd = null;
+
+        window.waitForFirebaseAuth = async () => {
+            if (window.firebaseIsReady && window.firebaseUserId) return true;
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-                window.firebaseIsReady = true;
-            } catch (e) { console.error("Ralat pengesahan Firebase:", e); }
-        }
-
-        // ==========================================
-        // SISTEM CLOUD SYNC: SINGLE SOURCE OF TRUTH
-        // (Menyimpan di laluan berpusat awam)
-        // ==========================================
-        window.saveToCloud = async (dataObj) => {
-            if (!window.firebaseIsReady) return false;
-            try {
-                // Membetulkan ralat path: mesti genap (Collection -> Document)
-                const docRef = doc(db, 'GadoGadoApp', 'PublicMasterData');
-                await setDoc(docRef, dataObj);
-                return true;
-            } catch (e) { 
-                if (e.code === 'permission-denied') {
-                    console.warn("Akses ditolak: Pangkalan data ini tidak membenarkan akses awam. Sila gunakan Konfigurasi Firebase anda sendiri untuk 'sync'.");
-                } else {
-                    console.error("Ralat Simpan Cloud:", e); 
-                }
-                return false; 
+                window.firebaseUserId = auth.currentUser?.uid || null;
+                window.firebaseIsReady = Boolean(window.firebaseUserId);
+                return window.firebaseIsReady;
+            } catch (e) {
+                console.warn("Firebase Auth tidak tersedia (mod luar talian):", e.message);
+                window.firebaseIsReady = false;
+                return false;
             }
         };
 
         window.loadFromCloud = async () => {
-            if (!window.firebaseIsReady) return null;
+            if (!window.firebaseIsReady || !window.firebaseUserId) return null;
             try {
-                // Membetulkan ralat path: mesti genap (Collection -> Document)
-                const docRef = doc(db, 'GadoGadoApp', 'PublicMasterData');
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) return docSnap.data();
+                const snap = await getDoc(getMasterDocRef());
+                if (snap.exists()) return snap.data();
                 return null;
-            } catch (e) { 
-                if (e.code === 'permission-denied') {
-                    console.warn("Akses ditolak: Bertukar kepada mod Storan Lokal. Untuk penyelarasan data merentas peranti, sila masukkan konfigurasi Firebase anda sendiri.");
-                } else {
-                    console.error("Ralat Muat Cloud:", e); 
-                }
-                return null; 
+            } catch (e) {
+                console.warn("Gagal muat turun MasterData dari Cloud:", e.message);
+                return null;
             }
         };
 
-        initAuth();
+        window.saveToCloud = async (dataObj) => {
+            if (!window.firebaseIsReady || !window.firebaseUserId) return false;
+            try {
+                await setDoc(getMasterDocRef(), { ...dataObj, updatedAt: Date.now() });
+                return true;
+            } catch (e) {
+                console.warn("Gagal simpan MasterData ke Cloud:", e.message);
+                return false;
+            }
+        };
+
+        window.publishLiveState = async (stateObj) => {
+            if (!window.firebaseIsReady || !window.firebaseUserId) return;
+            try {
+                await setDoc(getLiveStateRef(), stateObj);
+            } catch (e) {
+                console.warn("Gagal hantar liveState:", e.message);
+            }
+        };
+
+        window.publishHostCommand = async (cmdObj) => {
+            if (!window.firebaseIsReady || !window.firebaseUserId) return;
+            try {
+                await setDoc(getLiveCmdRef(), cmdObj);
+            } catch (e) {
+                console.warn("Gagal hantar liveCommand:", e.message);
+            }
+        };
+
+        window.subscribeLiveSync = (onStateFn, onCmdFn) => {
+            if (!window.firebaseIsReady || !window.firebaseUserId) return;
+            if (unsubState) unsubState();
+            if (unsubCmd) unsubCmd();
+
+            unsubState = onSnapshot(
+                getLiveStateRef(),
+                (snap) => { if (snap.exists() && onStateFn) onStateFn(snap.data()); },
+                (err) => { console.warn("Ralat langganan liveState:", err.message); }
+            );
+
+            unsubCmd = onSnapshot(
+                getLiveCmdRef(),
+                (snap) => { if (snap.exists() && onCmdFn) onCmdFn(snap.data()); },
+                (err) => { console.warn("Ralat langganan liveCommand:", err.message); }
+            );
+        };
     </script>
 
+    <!-- Logik Utama Aplikasi Gado-Gado v3.3 -->
     <script>
+        const FIXED_POINTS = [50, 40, 30, 20, 15, 10, 5, 2];
+        const DEVICE_ID = 'dev_' + Math.random().toString(36).slice(2, 10);
+
         const defaultGameData = [
-            { question: "Namakan benda yang anda selalu lupa bawa apabila keluar rumah.", answers: [{ text: "Dompet / Duit", points: 35 }, { text: "Telefon Pintar", points: 28 }, { text: "Kunci", points: 20 }, { text: "Spek Mata", points: 10 }, { text: "Payung", points: 4 }, { text: "Kad Pengenalan", points: 3 }] },
-            { question: "Apakah alasan popular yang selalu diberikan apabila lewat ke tempat kerja?", answers: [{ text: "Jalan Sesak / Jem", points: 40 }, { text: "Bangun Lambat", points: 25 }, { text: "Kereta Rosak", points: 15 }, { text: "Hujan Lebat", points: 10 }, { text: "Sakit Perut", points: 6 }, { text: "Tayar Pancit", points: 4 }] },
-            { question: "Namakan haiwan peliharaan yang paling popular di Malaysia.", answers: [{ text: "Kucing", points: 55 }, { text: "Ikan", points: 18 }, { text: "Burung", points: 12 }, { text: "Arnab", points: 8 }, { text: "Hamster", points: 5 }, { text: "Ayam", points: 2 }] },
-            { question: "Selain nasi, apakah makanan yang selalu dimakan untuk sarapan pagi?", answers: [{ text: "Roti Canai", points: 45 }, { text: "Mee Goreng", points: 20 }, { text: "Kuih-Muih", points: 15 }, { text: "Roti Bakar", points: 10 }, { text: "Biskut", points: 6 }, { text: "Bijirin (Cereal)", points: 4 }] },
-            { question: "Sebutkan tempat orang selalu pergi pada hujung minggu.", answers: [{ text: "Pusat Membeli-belah", points: 42 }, { text: "Taman Rekreasi", points: 20 }, { text: "Pulang Ke Kampung", points: 15 }, { text: "Tepi Pantai", points: 12 }, { text: "Kenduri Kahwin", points: 8 }, { text: "Panggung Wayang", points: 3 }] }
+            {
+                question: "Namakan benda yang anda selalu lupa bawa apabila keluar rumah.",
+                answers: [
+                    { text: "Dompet / Duit", points: 50 },
+                    { text: "Telefon Pintar", points: 40 },
+                    { text: "Kunci (Rumah/Kereta)", points: 30 },
+                    { text: "Spek Mata", points: 20 },
+                    { text: "Payung", points: 15 },
+                    { text: "Kad Pengenalan", points: 10 }
+                ]
+            },
+            {
+                question: "Apakah alasan popular yang selalu diberikan apabila lewat ke tempat kerja?",
+                answers: [
+                    { text: "Jalan Sesak / Jem", points: 50 },
+                    { text: "Bangun Lambat", points: 40 },
+                    { text: "Kereta Rosak", points: 30 },
+                    { text: "Hujan Lebat", points: 20 },
+                    { text: "Sakit Perut", points: 15 },
+                    { text: "Tayar Pancit", points: 10 }
+                ]
+            },
+            {
+                question: "Namakan haiwan peliharaan yang paling popular di Malaysia.",
+                answers: [
+                    { text: "Kucing", points: 50 },
+                    { text: "Ikan", points: 40 },
+                    { text: "Burung", points: 30 },
+                    { text: "Arnab", points: 20 },
+                    { text: "Hamster", points: 15 },
+                    { text: "Ayam", points: 10 }
+                ]
+            },
+            {
+                question: "Selain nasi, apakah makanan yang selalu dimakan untuk sarapan pagi?",
+                answers: [
+                    { text: "Roti Canai", points: 50 },
+                    { text: "Mee Goreng", points: 40 },
+                    { text: "Kuih-Muih", points: 30 },
+                    { text: "Roti Bakar", points: 20 },
+                    { text: "Biskut", points: 15 },
+                    { text: "Bijirin (Cereal)", points: 10 }
+                ]
+            },
+            {
+                question: "Sebutkan tempat orang selalu pergi pada hujung minggu.",
+                answers: [
+                    { text: "Pusat Membeli-belah", points: 50 },
+                    { text: "Taman Rekreasi", points: 40 },
+                    { text: "Pulang Ke Kampung", points: 30 },
+                    { text: "Tepi Pantai", points: 20 },
+                    { text: "Kenduri Kahwin", points: 15 },
+                    { text: "Panggung Wayang", points: 10 }
+                ]
+            }
         ];
 
-        let defaultPresets = [
-            { name: "Preset 1 (Lalai)", data: JSON.parse(JSON.stringify(defaultGameData)), totalRounds: 5 },
-            { name: "Preset 2 (Kosong)", data: null, totalRounds: 5 }, 
-            { name: "Preset 3 (Kosong)", data: null, totalRounds: 5 },
-            { name: "Preset 4 (Kosong)", data: null, totalRounds: 5 }, 
-            { name: "Preset 5 (Kosong)", data: null, totalRounds: 5 }
-        ];
-        let appPresets = JSON.parse(JSON.stringify(defaultPresets));
+        function createEmptyRounds() {
+            return Array.from({ length: 5 }, () => ({ question: "", answers: [] }));
+        }
 
-        let gameData = []; let currentPresetIndex = 0; const STORAGE_KEY = 'familyFeudDataMY';
-        let currentRound = 0; let team1Score = 0; let team2Score = 0; let pot = 0; let revealedAnswers = [];
-        let currentTheme = 'classic'; let customBgmUrl = 'https://cdn.pixabay.com/audio/2025/07/30/audio_1e5d067d6f.mp3';
-        let customBgmFileUrl = ''; let customVictoryUrl = 'https://cdn.pixabay.com/audio/2026/04/06/audio_4dab561816.mp3';
-        let customVictoryFileUrl = ''; let activeTeam = 1; let currentStrikes = 0; let missedRevealed = false; 
-        let isCountingDown = false; let countdownInterval = null; let isGamePaused = false; let totalRounds = 5;
-        let questionTimerInterval = null; let questionTimeLeft = 30; const QUESTION_TIME_LIMIT = 30;
-        let isGameOver = false; let isGameActive = false;
-        let currentPreviewAudio = null;
+        function createDefaultPresets() {
+            return [
+                { name: "Preset 1 (Lalai)", totalRounds: 5, data: JSON.parse(JSON.stringify(defaultGameData)) },
+                { name: "Preset 2 (Kosong)", totalRounds: 5, data: createEmptyRounds() },
+                { name: "Preset 3 (Kosong)", totalRounds: 5, data: createEmptyRounds() },
+                { name: "Preset 4 (Kosong)", totalRounds: 5, data: createEmptyRounds() },
+                { name: "Preset 5 (Kosong)", totalRounds: 5, data: createEmptyRounds() }
+            ];
+        }
 
-        function escapeHTML(str) {
-            if (!str) return "";
-            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        // State Aplikasi
+        let appPresets = createDefaultPresets();
+        let currentPresetIndex = 0;
+        let gameData = JSON.parse(JSON.stringify(defaultGameData));
+        let totalRounds = 5;
+
+        let currentRound = 0;
+        let team1Score = 0;
+        let team2Score = 0;
+        let pot = 0;
+        let revealedAnswers = [];
+        let activeTeam = 1;
+        let currentStrikes = 0;
+        let missedRevealed = false;
+
+        let currentTheme = 'classic';
+        let gameTitle = "Gado-Gado\nMalaysia";
+        let customBgmUrl = 'https://cdn.pixabay.com/audio/2025/07/30/audio_1e5d067d6f.mp3';
+        let customBgmFileUrl = '';
+        let customVictoryUrl = 'https://cdn.pixabay.com/audio/2026/04/06/audio_4dab561816.mp3';
+        let customVictoryFileUrl = '';
+
+        let isAudioStarted = false;
+        let isBgmPlaying = true;
+        let isGameActive = false;
+        let isGamePaused = false;
+        let isGameOver = false;
+        let isSettingsOpen = false;
+        let isHostViewOpen = false;
+        let isCountingDown = false;
+
+        let countdownInterval = null;
+        let questionTimerInterval = null;
+        let questionTimeLeft = 30;
+        const QUESTION_TIME_LIMIT = 30;
+
+        let lastHandledCmdId = null;
+        let liveBroadcastChannel = null;
+        if (typeof BroadcastChannel !== 'undefined') {
+            liveBroadcastChannel = new BroadcastChannel('gado_gado_live_sync_v3');
+        }
+
+        // Helper: Escape HTML untuk nilai input
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // --- Sistem Toast & Modal ---
+        function showToast(message, isWarning = false) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast-item px-4 py-2.5 rounded-xl font-semibold text-sm shadow-xl border flex items-center gap-2 ${
+                isWarning
+                    ? 'bg-amber-900 text-amber-100 border-amber-500'
+                    : 'bg-emerald-900 text-emerald-100 border-emerald-400'
+            }`;
+            toast.innerHTML = `<span>${isWarning ? '⚠️' : '✅'}</span><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 2600);
         }
 
         let currentConfirmCallback = null;
@@ -674,587 +1016,1352 @@
             document.getElementById('custom-modal-ok').onclick = closeCustomModal;
             document.getElementById('custom-modal').classList.remove('hidden');
         }
+
         function showConfirm(msg, callback) {
             document.getElementById('custom-modal-title').innerText = "Pengesahan";
             document.getElementById('custom-modal-msg').innerText = msg;
             document.getElementById('custom-modal-cancel').classList.remove('hidden');
             currentConfirmCallback = callback;
             document.getElementById('custom-modal-cancel').onclick = closeCustomModal;
-            document.getElementById('custom-modal-ok').onclick = () => { closeCustomModal(); if (currentConfirmCallback) currentConfirmCallback(); };
+            document.getElementById('custom-modal-ok').onclick = () => {
+                const cb = currentConfirmCallback;
+                closeCustomModal();
+                if (cb) cb();
+            };
             document.getElementById('custom-modal').classList.remove('hidden');
         }
-        function closeCustomModal() { document.getElementById('custom-modal').classList.add('hidden'); currentConfirmCallback = null; }
 
-        function showToast(msg, isError = false) {
-            const container = document.getElementById('toast-container'); if (!container) return;
-            const toast = document.createElement('div'); toast.className = `toast-msg ${isError ? 'error' : ''}`;
-            toast.innerHTML = isError ? `⚠️ ${msg}` : `✅ ${msg}`; container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 10);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        function closeCustomModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            currentConfirmCallback = null;
         }
 
-        function startQuestionTimer() {
+        // --- Audio SFX (Tone.js) ---
+        const dingSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 1 }
+        }).toDestination();
+        dingSynth.volume.value = -5;
+
+        const buzzerSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sawtooth" },
+            envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 0.5 }
+        }).toDestination();
+        buzzerSynth.volume.value = 1;
+
+        function playDingSound() {
+            if (!isAudioStarted) return;
+            try { dingSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n"); } catch (e) {}
+        }
+
+        function playBuzzerSound() {
+            if (!isAudioStarted) return;
+            try { buzzerSynth.triggerAttackRelease(["C2", "C#2", "D2"], "4n"); } catch (e) {}
+        }
+
+        // --- Inisialisasi & Cloud Sync ---
+        function applyData(data) {
+            if (!data) return;
+            currentTheme = data.theme || 'classic';
+            document.body.setAttribute('data-theme', currentTheme);
+
+            gameTitle = data.title || "Gado-Gado\nMalaysia";
+            document.getElementById('game-title-display').innerHTML = escapeHtml(gameTitle).replace(/\n/g, '<br>');
+
+            customBgmUrl = data.bgmUrl !== undefined ? data.bgmUrl : customBgmUrl;
+            document.getElementById('bgm-audio').src = customBgmFileUrl || customBgmUrl;
+
+            customVictoryUrl = data.victoryUrl !== undefined ? data.victoryUrl : customVictoryUrl;
+            document.getElementById('victory-audio').src = customVictoryFileUrl || customVictoryUrl;
+
+            document.getElementById('team1-name').innerText = data.t1Name || "Kumpulan 1";
+            document.getElementById('team2-name').innerText = data.t2Name || "Kumpulan 2";
+
+            if (Array.isArray(data.presets) && data.presets.length === 5) {
+                appPresets = data.presets.map((p, idx) => ({
+                    name: p.name || `Preset ${idx + 1}`,
+                    totalRounds: parseInt(p.totalRounds) || 5,
+                    data: Array.isArray(p.data) ? p.data.slice(0, 5) : createEmptyRounds()
+                }));
+            }
+
+            if (typeof data.lastPresetIndex === 'number' && data.lastPresetIndex >= 0 && data.lastPresetIndex < 5) {
+                currentPresetIndex = data.lastPresetIndex;
+            }
+
+            totalRounds = parseInt(data.totalRounds) || appPresets[currentPresetIndex]?.totalRounds || 5;
+            gameData = Array.isArray(data.gameData) ? data.gameData.slice(0, 5) : JSON.parse(JSON.stringify(defaultGameData));
+            while (gameData.length < 5) gameData.push({ question: "", answers: [] });
+        }
+
+        function buildMasterPayload() {
+            return {
+                theme: currentTheme,
+                title: gameTitle,
+                bgmUrl: customBgmUrl,
+                victoryUrl: customVictoryUrl,
+                t1Name: document.getElementById('team1-name').innerText.trim() || "Kumpulan 1",
+                t2Name: document.getElementById('team2-name').innerText.trim() || "Kumpulan 2",
+                totalRounds: totalRounds,
+                lastPresetIndex: currentPresetIndex,
+                gameData: gameData,
+                presets: appPresets
+            };
+        }
+
+        function pushMasterDataToCloud() {
+            if (window.saveToCloud) {
+                window.saveToCloud(buildMasterPayload());
+            }
+        }
+
+        // --- Permainan Utama ---
+        function initGame() {
+            isGameOver = false;
+            currentRound = 0;
+            team1Score = 0;
+            team2Score = 0;
+            activeTeam = 1;
+            currentStrikes = 0;
+            document.getElementById('total-rounds-display').innerText = totalRounds;
+            updateActiveTeamUI();
+            updateStrikeUI();
+            updateScores();
+            updatePauseUI();
+            loadRound(currentRound, false);
+        }
+
+        function loadRound(roundIndex, autoStartTimer = true) {
+            if (roundIndex >= totalRounds) return;
+
+            const roundData = gameData[roundIndex] || { question: "", answers: [] };
+            revealedAnswers = new Array((roundData.answers || []).length).fill(false);
+            pot = 0;
+            currentStrikes = 0;
+            missedRevealed = false;
+            updateStrikeUI();
+
+            document.getElementById('round-number').innerText = roundIndex + 1;
+            document.getElementById('total-rounds-display').innerText = totalRounds;
+            document.getElementById('question-text').innerText = roundData.question || "(Tiada Soalan)";
+
+            const nextBtn = document.getElementById('btn-next-round');
+            if (nextBtn) {
+                if (countdownInterval) clearInterval(countdownInterval);
+                isCountingDown = false;
+                nextBtn.classList.remove('timeout-btn');
+
+                if (roundIndex >= totalRounds - 1) {
+                    nextBtn.innerHTML = "<span class='relative z-10'>AKHIR 🏁</span>";
+                    nextBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    nextBtn.classList.add('bg-yellow-600', 'hover:bg-yellow-700');
+                } else {
+                    nextBtn.innerHTML = "<span class='relative z-10'>SETERUSNYA ➡️</span>";
+                    nextBtn.classList.remove('bg-yellow-600', 'hover:bg-yellow-700');
+                    nextBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                }
+            }
+
+            updatePotDisplay();
+            renderBoard(roundData);
+
+            // Reset paparan timer; hanya mula mengira jika permainan sedang aktif
             if (questionTimerInterval) clearInterval(questionTimerInterval);
-            questionTimeLeft = QUESTION_TIME_LIMIT; updateQTimerUI();
-            if (isGameOver || !isGameActive) return;
+            questionTimeLeft = QUESTION_TIME_LIMIT;
+            updateQTimerUI();
+            if (autoStartTimer && isGameActive && !isGameOver) {
+                startQuestionTimer();
+            }
+        }
+
+        function renderBoard(roundData) {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            const answers = roundData.answers || [];
+            const totalSlots = Math.max(6, answers.length % 2 === 0 ? answers.length : answers.length + 1);
+
+            for (let i = 0; i < totalSlots; i++) {
+                if (i < answers.length && answers[i] && answers[i].text.trim() !== "") {
+                    const ans = answers[i];
+                    board.innerHTML += `
+                        <div class="flip-card" id="card-${i}" onclick="revealAnswer(${i})">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front">
+                                    <span class="w-10 h-10 md:w-11 md:h-11 border-2 border-blue-400 rounded-full flex items-center justify-center bg-blue-900 text-white text-2xl font-extrabold shadow">
+                                        ${i + 1}
+                                    </span>
+                                </div>
+                                <div class="flip-card-back">
+                                    <div class="answer-text">${escapeHtml(ans.text)}</div>
+                                    <div class="answer-score">${ans.points}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    board.innerHTML += `
+                        <div class="flip-card" style="cursor: default;">
+                            <div class="flip-card-inner">
+                                <div class="flip-card-front" style="background: transparent; border-color: rgba(50, 130, 184, 0.25);"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // --- Pemasa Soalan (30s) ---
+        function startQuestionTimer() {
+            if (!isGameActive || isGameOver) return;
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+            questionTimeLeft = QUESTION_TIME_LIMIT;
+            updateQTimerUI();
 
             questionTimerInterval = setInterval(() => {
-                if (isCountingDown || isGamePaused) return; 
+                if (!isGameActive || isCountingDown || isGamePaused || isSettingsOpen || isGameOver) return;
                 questionTimeLeft--;
-                if (questionTimeLeft <= 0) { questionTimeLeft = 0; clearInterval(questionTimerInterval); playBuzzerSound(); showStrike(); }
+                if (questionTimeLeft <= 0) {
+                    questionTimeLeft = 0;
+                    clearInterval(questionTimerInterval);
+                    playBuzzerSound();
+                    showStrike();
+                }
                 updateQTimerUI();
             }, 1000);
         }
 
         function updateQTimerUI() {
-            const bar = document.getElementById('q-timer-bar'); const text = document.getElementById('q-timer-text');
+            const bar = document.getElementById('q-timer-bar');
+            const text = document.getElementById('q-timer-text');
             if (!bar || !text) return;
+
             bar.style.width = ((questionTimeLeft / QUESTION_TIME_LIMIT) * 100) + '%';
+            if (isGamePaused && isGameActive && !isGameOver) {
+                bar.classList.remove('blink');
+                text.innerText = `⏸️ PERMAINAN DIHENTIKAN (MASA: ${questionTimeLeft}s)`;
+                text.classList.add('text-yellow-400');
+                text.classList.remove('text-gray-300', 'text-red-400');
+                return;
+            }
             text.innerText = `MASA: ${questionTimeLeft}s`;
-            if (questionTimeLeft <= 10) { bar.classList.add('blink'); text.classList.add('text-red-400'); text.classList.remove('text-gray-300'); } 
-            else { bar.classList.remove('blink'); text.classList.remove('text-red-400'); text.classList.add('text-gray-300'); }
-        }
-
-        let gameInitialized = false;
-        async function initGameWrapper() {
-            if (gameInitialized) return;
-            gameInitialized = true;
-            
-            // Tunggu sehingga modul Firebase selesai mendaftar masuk (Pembaikan Race Condition)
-            let tungguFirebase = 50; // Maksimum menunggu 5 saat (50 * 100ms)
-            while (!window.firebaseIsReady && tungguFirebase > 0) {
-                await new Promise(r => setTimeout(r, 100));
-                tungguFirebase--;
-            }
-            
-            let loadedFromCloud = false;
-            if (window.firebaseIsReady) {
-                const cloudData = await window.loadFromCloud();
-                if (cloudData) { 
-                    // Menulis ganti (Overwrite) semua localStorage dengan data Cloud
-                    localStorage.setItem('familyFeudTheme_MY', cloudData.theme || 'classic');
-                    localStorage.setItem('familyFeudTitle_MY', cloudData.title || "Gado-Gado\nMalaysia");
-                    localStorage.setItem('familyFeudBGMUrl_MY', cloudData.bgmUrl || '');
-                    localStorage.setItem('familyFeudVictoryUrl_MY', cloudData.victoryUrl || '');
-                    localStorage.setItem('familyFeudT1Name_MY', cloudData.t1Name || 'Kumpulan 1');
-                    localStorage.setItem('familyFeudT2Name_MY', cloudData.t2Name || 'Kumpulan 2');
-                    localStorage.setItem('familyFeudTotalRounds_MY', cloudData.totalRounds || 5);
-                    if(cloudData.presets) localStorage.setItem('familyFeudPresets_MY', JSON.stringify(cloudData.presets));
-                    if(cloudData.gameData) localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData.gameData));
-                    
-                    applyData(cloudData); 
-                    loadedFromCloud = true; 
-                    console.log("Master Cloud diseragamkan dengan storan lokal.");
-                }
-            } 
-            if (!loadedFromCloud) loadDataFromStorage();
-            initGame();
-        }
-
-        function applyData(data) {
-            currentTheme = data.theme || 'classic'; document.body.setAttribute('data-theme', currentTheme);
-            const titleInput = data.title || "Gado-Gado\nMalaysia"; document.getElementById('game-title-display').innerHTML = titleInput.replace(/\n/g, '<br>');
-            customBgmUrl = data.bgmUrl || ''; document.getElementById('bgm-audio').src = customBgmUrl;
-            customVictoryUrl = data.victoryUrl || ''; document.getElementById('victory-audio').src = customVictoryUrl;
-            document.getElementById('team1-name').innerText = data.t1Name || "Kumpulan 1"; document.getElementById('team2-name').innerText = data.t2Name || "Kumpulan 2";
-            totalRounds = data.totalRounds || 5;
-            appPresets = data.presets || JSON.parse(JSON.stringify(defaultPresets));
-            gameData = data.gameData || JSON.parse(JSON.stringify(defaultGameData));
-            while (gameData.length < 5) gameData.push({ question: "", answers: [] }); gameData = gameData.slice(0, 5); 
-        }
-
-        function initGame() {
-            isGameOver = false; currentRound = 0; team1Score = 0; team2Score = 0; activeTeam = 1; currentStrikes = 0;
-            updateActiveTeamUI(); updateStrikeUI(); updateScores(); loadRound(currentRound);
-        }
-
-        function returnToIntro() {
-            document.getElementById('audio-overlay').classList.remove('hidden'); document.getElementById('bgm-btn').classList.add('hidden');
-            isAudioStarted = false; isGameActive = false;
-            
-            const bgmAudio = document.getElementById('bgm-audio'); bgmAudio.pause(); bgmAudio.currentTime = 0;
-            const victoryAudio = document.getElementById('victory-audio'); victoryAudio.pause(); victoryAudio.currentTime = 0;
-            
-            stopFireworks(); closeWinnerPopup();
-
-            if (countdownInterval) clearInterval(countdownInterval); if (questionTimerInterval) clearInterval(questionTimerInterval);
-            isCountingDown = false; const nextBtn = document.getElementById('btn-next-round'); if (nextBtn) nextBtn.classList.remove('timeout-btn');
-
-            initGame();
-        }
-
-        let restartTimeout = null;
-        function requestRestartGame() {
-            const btn = document.getElementById('btn-restart');
-            if (restartTimeout) {
-                clearTimeout(restartTimeout); restartTimeout = null;
-                btn.innerHTML = "🔄 Mula Semula (Restart)"; btn.classList.replace('bg-red-600', 'bg-yellow-600'); btn.classList.replace('hover:bg-red-700', 'hover:bg-yellow-500');
-                closeSettings(); returnToIntro();
+            text.classList.remove('text-yellow-400');
+            if (questionTimeLeft <= 10) {
+                bar.classList.add('blink');
+                text.classList.add('text-red-400');
+                text.classList.remove('text-gray-300');
             } else {
-                btn.innerHTML = "⚠️ Klik Sekali Lagi Untuk Sahkan"; btn.classList.replace('bg-yellow-600', 'bg-red-600'); btn.classList.replace('hover:bg-yellow-500', 'hover:bg-red-700');
-                restartTimeout = setTimeout(() => {
-                    restartTimeout = null; btn.innerHTML = "🔄 Mula Semula (Restart)"; btn.classList.replace('bg-red-600', 'bg-yellow-600'); btn.classList.replace('hover:bg-red-700', 'hover:bg-yellow-500');
-                }, 4000);
+                bar.classList.remove('blink');
+                text.classList.remove('text-red-400');
+                text.classList.add('text-gray-300');
             }
         }
 
-        function requestResetToDefault() {
-            showConfirm("⚠️ Reset Asal: Adakah anda pasti mahu memadam semua data soalan anda dan kembali ke soalan lalai (default)? Segala tetapan anda akan hilang.", () => {
-                localStorage.removeItem(STORAGE_KEY);
-                ['Theme', 'Title', 'BGMUrl', 'VictoryUrl', 'T1Name', 'T2Name', 'Presets', 'TotalRounds', 'LastPreset'].forEach(k => localStorage.removeItem('familyFeud'+k+'_MY'));
-                loadDataFromStorage();
-                if (window.saveToCloud) window.saveToCloud({ theme: 'classic', title: "Gado-Gado\nMalaysia", bgmUrl: '', victoryUrl: '', t1Name: "Kumpulan 1", t2Name: "Kumpulan 2", totalRounds: 5, gameData: gameData, presets: appPresets });
-                closeSettings(); returnToIntro(); showAlert("Berjaya kembali ke tetapan asal.");
+        // --- Tindakan Permainan ---
+        async function startAudio(fromRemote = false) {
+            try { await Tone.start(); } catch (e) {}
+            isAudioStarted = true;
+            isGameActive = true;
+            isGamePaused = false;
+            isGameOver = false;
+
+            document.getElementById('audio-overlay').classList.add('hidden');
+            document.getElementById('bgm-btn').classList.remove('hidden');
+
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (isBgmPlaying && (customBgmUrl !== '' || customBgmFileUrl !== '')) {
+                bgmAudio.src = customBgmFileUrl || customBgmUrl;
+                bgmAudio.play().catch(() => {});
+            }
+
+            updatePauseUI();
+            updateBgmUI();
+            startQuestionTimer();
+
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        function revealAnswer(index, fromRemote = false) {
+            if (isGameOver || !isGameActive) return;
+            const round = gameData[currentRound];
+            if (!round || !round.answers || !round.answers[index]) return;
+            if (revealedAnswers[index]) return;
+
+            const card = document.getElementById(`card-${index}`);
+            if (card) {
+                card.classList.add('revealed');
+                card.classList.add(activeTeam === 1 ? 'team1-ans' : 'team2-ans');
+            }
+
+            revealedAnswers[index] = true;
+            const points = round.answers[index].points || FIXED_POINTS[index] || 10;
+            pot += points;
+            if (activeTeam === 1) team1Score += points;
+            else team2Score += points;
+
+            updatePotDisplay();
+            updateScores();
+            playDingSound();
+            startQuestionTimer();
+            checkRoundComplete();
+
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        function checkRoundComplete() {
+            const answers = (gameData[currentRound]?.answers || []).filter(a => a && a.text.trim() !== "");
+            const allRevealed = answers.length > 0 && answers.every((_, idx) => revealedAnswers[idx] === true);
+            if (allRevealed && !isCountingDown) {
+                if (questionTimerInterval) clearInterval(questionTimerInterval);
+                startNextRoundTimer(6);
+            }
+        }
+
+        function showStrike(fromRemote = false) {
+            if (isGameOver || !isGameActive) return;
+            currentStrikes = Math.min(3, currentStrikes + 1);
+            updateStrikeUI();
+
+            const overlay = document.getElementById('strike-overlay');
+            const container = document.getElementById('strike-container');
+            container.innerHTML = '';
+            for (let i = 0; i < currentStrikes; i++) {
+                container.innerHTML += '<div class="strike-x">X</div>';
+            }
+
+            overlay.classList.add('show');
+            playBuzzerSound();
+
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+
+            setTimeout(() => {
+                overlay.classList.remove('show');
+                if (currentStrikes >= 3) {
+                    activeTeam = activeTeam === 1 ? 2 : 1;
+                    currentStrikes = 0;
+                    updateActiveTeamUI();
+                    updateStrikeUI();
+                    if (!fromRemote) broadcastLiveState();
+                    else if (isHostViewOpen) renderHostView();
+                }
+                startQuestionTimer();
+            }, 1400);
+        }
+
+        function setTurn(teamNum, fromRemote = false) {
+            if (isGameOver) return;
+            activeTeam = teamNum;
+            currentStrikes = 0;
+            updateActiveTeamUI();
+            updateStrikeUI();
+            if (isGameActive) startQuestionTimer();
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        function startNextRoundTimer(duration) {
+            const nextBtn = document.getElementById('btn-next-round');
+            isCountingDown = true;
+            let timer = duration;
+
+            if (nextBtn) {
+                nextBtn.style.setProperty('--timer-dur', duration + 's');
+                nextBtn.classList.add('timeout-btn');
+                const actionText = currentRound >= totalRounds - 1 ? "Tamat" : "Beralih";
+                nextBtn.innerHTML = `<span class="relative z-10">${actionText} (${timer}s)</span>`;
+            }
+
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                if (isGamePaused || isSettingsOpen) return;
+                timer--;
+                if (timer > 0) {
+                    if (nextBtn) {
+                        const actionText = currentRound >= totalRounds - 1 ? "Tamat" : "Beralih";
+                        nextBtn.innerHTML = `<span class="relative z-10">${actionText} (${timer}s)</span>`;
+                    }
+                } else {
+                    clearInterval(countdownInterval);
+                    isCountingDown = false;
+                    if (nextBtn) nextBtn.classList.remove('timeout-btn');
+                    executeNextRound();
+                }
+            }, 1000);
+        }
+
+        function nextRound(fromRemote = false) {
+            if (isGameOver || !isGameActive) return;
+            const nextBtn = document.getElementById('btn-next-round');
+
+            if (isCountingDown) {
+                clearInterval(countdownInterval);
+                isCountingDown = false;
+                if (nextBtn) nextBtn.classList.remove('timeout-btn');
+                executeNextRound(fromRemote);
+                return;
+            }
+
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+
+            const answers = gameData[currentRound]?.answers || [];
+            let hasUnrevealed = false;
+            for (let i = 0; i < answers.length; i++) {
+                if (answers[i]?.text.trim() !== "" && !revealedAnswers[i]) {
+                    hasUnrevealed = true;
+                    break;
+                }
+            }
+
+            if (hasUnrevealed && !missedRevealed) {
+                for (let i = 0; i < answers.length; i++) {
+                    if (answers[i]?.text.trim() !== "" && !revealedAnswers[i]) {
+                        const card = document.getElementById(`card-${i}`);
+                        if (card) card.classList.add('revealed', 'missed');
+                    }
+                }
+                missedRevealed = true;
+                startNextRoundTimer(5);
+                if (!fromRemote) broadcastLiveState();
+                else if (isHostViewOpen) renderHostView();
+            } else {
+                executeNextRound(fromRemote);
+            }
+        }
+
+        function executeNextRound(fromRemote = false) {
+            if (currentRound >= totalRounds - 1) {
+                showWinnerPopup(fromRemote);
+                return;
+            }
+            currentRound++;
+            loadRound(currentRound, true);
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        function togglePauseGame(fromRemote = false) {
+            if (!isGameActive || isGameOver) {
+                if (!fromRemote) showToast("Permainan belum dimulakan.", true);
+                return;
+            }
+            isGamePaused = !isGamePaused;
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (isGamePaused) {
+                if (bgmAudio && !bgmAudio.paused) bgmAudio.pause();
+            } else {
+                if (isBgmPlaying && isAudioStarted && !isSettingsOpen && (customBgmUrl !== '' || customBgmFileUrl !== '')) {
+                    bgmAudio.play().catch(() => {});
+                }
+            }
+            updatePauseUI();
+            updateQTimerUI();
+            if (!fromRemote) {
+                showToast(isGamePaused ? "Permainan dihentikan sementara." : "Permainan disambung semula.");
+                broadcastLiveState();
+            } else if (isHostViewOpen) {
+                renderHostView();
+            }
+        }
+
+        function toggleBGM(fromRemote = false) {
+            const bgmAudio = document.getElementById('bgm-audio');
+            isBgmPlaying = !isBgmPlaying;
+            if (isBgmPlaying) {
+                if (customBgmUrl !== '' || customBgmFileUrl !== '') {
+                    bgmAudio.src = customBgmFileUrl || customBgmUrl;
+                    if (isGameActive && !isGamePaused && !isSettingsOpen) {
+                        bgmAudio.play().catch(() => {});
+                    }
+                } else if (!fromRemote) {
+                    showToast("Tiada fail/URL BGM ditetapkan di Tetapan.", true);
+                }
+            } else {
+                bgmAudio.pause();
+            }
+            updateBgmUI();
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        function returnToIntro(fromRemote = false) {
+            document.getElementById('audio-overlay').classList.remove('hidden');
+            document.getElementById('bgm-btn').classList.add('hidden');
+            isAudioStarted = false;
+            isGameActive = false;
+            isGamePaused = false;
+            isGameOver = false;
+
+            const bgmAudio = document.getElementById('bgm-audio');
+            bgmAudio.pause();
+            bgmAudio.currentTime = 0;
+
+            const victoryAudio = document.getElementById('victory-audio');
+            victoryAudio.pause();
+            victoryAudio.currentTime = 0;
+            stopFireworks();
+
+            const winnerOverlay = document.getElementById('winner-overlay');
+            winnerOverlay.classList.remove('flex');
+            winnerOverlay.classList.add('hidden');
+
+            if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+            if (questionTimerInterval) { clearInterval(questionTimerInterval); questionTimerInterval = null; }
+            isCountingDown = false;
+            const nextBtn = document.getElementById('btn-next-round');
+            if (nextBtn) nextBtn.classList.remove('timeout-btn');
+
+            initGame();
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        function confirmExitToIntro() {
+            showConfirm("Adakah anda pasti mahu keluar dan kembali ke skrin utama?", () => {
+                returnToIntro();
             });
         }
 
-        function setTurn(teamNum) {
-            if (isGameOver) return; activeTeam = teamNum; currentStrikes = 0; updateActiveTeamUI(); updateStrikeUI(); startQuestionTimer();
+        // --- Kemas Kini UI Skor & Butang ---
+        function updatePotDisplay() {
+            document.getElementById('round-pot').innerText = pot;
+        }
+
+        function updateScores() {
+            document.getElementById('team1-score').innerText = team1Score;
+            document.getElementById('team2-score').innerText = team2Score;
         }
 
         function updateActiveTeamUI() {
-            const t1 = document.getElementById('team1-container'); const t2 = document.getElementById('team2-container');
-            if (activeTeam === 1) { t1.classList.add('active-team'); t2.classList.remove('active-team'); } 
-            else { t2.classList.add('active-team'); t1.classList.remove('active-team'); }
+            const t1 = document.getElementById('team1-container');
+            const t2 = document.getElementById('team2-container');
+            if (activeTeam === 1) {
+                t1.classList.add('active-team');
+                t2.classList.remove('active-team');
+            } else {
+                t2.classList.add('active-team');
+                t1.classList.remove('active-team');
+            }
         }
 
-        function loadDataFromStorage() {
-            currentTheme = localStorage.getItem('familyFeudTheme_MY') || 'classic'; document.body.setAttribute('data-theme', currentTheme);
-            const savedTitle = localStorage.getItem('familyFeudTitle_MY'); document.getElementById('game-title-display').innerHTML = savedTitle ? savedTitle.replace(/\n/g, '<br>') : "Gado-Gado<br>Malaysia";
-            customBgmUrl = localStorage.getItem('familyFeudBGMUrl_MY') !== null ? localStorage.getItem('familyFeudBGMUrl_MY') : customBgmUrl; document.getElementById('bgm-audio').src = customBgmUrl;
-            customVictoryUrl = localStorage.getItem('familyFeudVictoryUrl_MY') !== null ? localStorage.getItem('familyFeudVictoryUrl_MY') : customVictoryUrl; document.getElementById('victory-audio').src = customVictoryUrl;
-            document.getElementById('team1-name').innerText = localStorage.getItem('familyFeudT1Name_MY') || "Kumpulan 1";
-            document.getElementById('team2-name').innerText = localStorage.getItem('familyFeudT2Name_MY') || "Kumpulan 2";
-            totalRounds = parseInt(localStorage.getItem('familyFeudTotalRounds_MY')) || 5;
-            currentPresetIndex = parseInt(localStorage.getItem('familyFeudLastPreset_MY')) || 0;
-            const savedPresets = localStorage.getItem('familyFeudPresets_MY');
-            try { appPresets = savedPresets ? JSON.parse(savedPresets) : JSON.parse(JSON.stringify(defaultPresets)); } catch(e) { appPresets = JSON.parse(JSON.stringify(defaultPresets)); }
-            const savedData = localStorage.getItem(STORAGE_KEY);
-            try { gameData = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(defaultGameData)); } catch (e) { gameData = JSON.parse(JSON.stringify(defaultGameData)); }
-            while (gameData.length < 5) gameData.push({ question: "", answers: [] }); gameData = gameData.slice(0, 5); 
+        function updateStrikeUI() {
+            const t1Strikes = document.getElementById('team1-strikes');
+            const t2Strikes = document.getElementById('team2-strikes');
+            const text = Array(currentStrikes).fill('X').join(' ');
+            if (t1Strikes) t1Strikes.innerText = activeTeam === 1 ? text : '';
+            if (t2Strikes) t2Strikes.innerText = activeTeam === 2 ? text : '';
         }
 
-        function openSettings() {
-            isGamePaused = true;
+        function updatePauseUI() {
+            const btn = document.getElementById('btn-pause-resume');
+            if (!btn) return;
+            if (isGamePaused) {
+                btn.innerHTML = '▶️ <span class="hidden sm:inline">Sambung</span>';
+                btn.classList.remove('bg-amber-600', 'hover:bg-amber-700');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+            } else {
+                btn.innerHTML = '⏸️ <span class="hidden sm:inline">Henti</span>';
+                btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                btn.classList.add('bg-amber-600', 'hover:bg-amber-700');
+            }
+        }
+
+        function updateBgmUI() {
+            const btn = document.getElementById('bgm-btn');
+            if (!btn) return;
+            if (isBgmPlaying) {
+                btn.innerHTML = '🔊 <span class="hidden sm:inline">BGM</span>';
+                btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            } else {
+                btn.innerHTML = '🔇 <span class="hidden sm:inline">BGM</span>';
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+            }
+        }
+
+        // --- Paparan Juara & Bunga Api ---
+        function showWinnerPopup(fromRemote = false) {
+            isGameOver = true;
+            if (questionTimerInterval) clearInterval(questionTimerInterval);
+
             const bgmAudio = document.getElementById('bgm-audio');
-            if (!bgmAudio.paused) bgmAudio.pause(); // Jeda lagu latar sementara
+            bgmAudio.pause();
+            isBgmPlaying = false;
+            updateBgmUI();
 
-            document.getElementById('setting-game-title').value = document.getElementById('game-title-display').innerHTML.replace(/<br\s*[\/]?>/gi, '\n');
-            document.getElementById('bgm-url').value = customBgmUrl; document.getElementById('bgm-file').value = ""; 
-            document.getElementById('victory-url').value = customVictoryUrl; document.getElementById('victory-file').value = ""; 
+            const t1Name = document.getElementById('team1-name').innerText;
+            const t2Name = document.getElementById('team2-name').innerText;
+            let winnerText = "KEDUDUKAN SERI!";
+            let winningScore = team1Score;
+
+            if (team1Score > team2Score) {
+                winnerText = "JUARA: " + t1Name.toUpperCase();
+                winningScore = team1Score;
+            } else if (team2Score > team1Score) {
+                winnerText = "JUARA: " + t2Name.toUpperCase();
+                winningScore = team2Score;
+            }
+
+            document.getElementById('winner-name-display').innerText = winnerText;
+            document.getElementById('winner-score-display').innerText = "Markah Keseluruhan: " + winningScore;
+
+            const victoryAudio = document.getElementById('victory-audio');
+            if (customVictoryUrl !== '' || customVictoryFileUrl !== '') {
+                victoryAudio.src = customVictoryFileUrl || customVictoryUrl;
+                victoryAudio.currentTime = 0;
+                victoryAudio.play().catch(() => {});
+            }
+
+            const winnerOverlay = document.getElementById('winner-overlay');
+            winnerOverlay.classList.remove('hidden');
+            winnerOverlay.classList.add('flex');
+            startFireworks();
+
+            if (!fromRemote) broadcastLiveState();
+            else if (isHostViewOpen) renderHostView();
+        }
+
+        let fwCanvas, fwCtx, fireworks = [], fwAnimationId;
+        function startFireworks() {
+            fwCanvas = document.getElementById('fireworks-canvas');
+            if (!fwCanvas) return;
+            fwCtx = fwCanvas.getContext('2d');
+            resizeFireworks();
+            window.addEventListener('resize', resizeFireworks);
+            fireworks = [];
+            fwLoop();
+        }
+        function resizeFireworks() {
+            if (!fwCanvas) return;
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+        }
+        function stopFireworks() {
+            if (fwAnimationId) cancelAnimationFrame(fwAnimationId);
+            window.removeEventListener('resize', resizeFireworks);
+            if (fwCtx && fwCanvas) fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        }
+        function createExplosion(x, y) {
+            const count = 50 + Math.random() * 35;
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 6 + 2;
+                fireworks.push({
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: Math.random() * 3 + 1,
+                    color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                    alpha: 1,
+                    decay: Math.random() * 0.015 + 0.008
+                });
+            }
+        }
+        function fwLoop() {
+            fwAnimationId = requestAnimationFrame(fwLoop);
+            fwCtx.globalCompositeOperation = 'destination-out';
+            fwCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+            fwCtx.globalCompositeOperation = 'lighter';
+
+            if (Math.random() < 0.08) {
+                createExplosion(Math.random() * fwCanvas.width, Math.random() * (fwCanvas.height * 0.6));
+            }
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const p = fireworks[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.05;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) {
+                    fireworks.splice(i, 1);
+                    continue;
+                }
+                fwCtx.beginPath();
+                fwCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                fwCtx.fillStyle = p.color;
+                fwCtx.globalAlpha = p.alpha;
+                fwCtx.fill();
+            }
+            fwCtx.globalAlpha = 1;
+        }
+
+        // --- Pengurusan Tetapan & Preset (Auto-Sync) ---
+        function openSettings() {
+            isSettingsOpen = true;
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (bgmAudio && !bgmAudio.paused) bgmAudio.pause();
+
+            document.getElementById('setting-game-title').value = gameTitle;
             document.getElementById('setting-t1-name').value = document.getElementById('team1-name').innerText;
             document.getElementById('setting-t2-name').value = document.getElementById('team2-name').innerText;
-            document.getElementById('setting-theme').value = currentTheme; document.getElementById('setting-total-rounds').value = totalRounds;
-            
-            refreshPresetDropdown(); 
-            document.getElementById('preset-selector').value = currentPresetIndex; 
+            document.getElementById('setting-theme').value = currentTheme;
+
+            document.getElementById('bgm-url').value = customBgmUrl;
+            document.getElementById('bgm-file').value = "";
+            document.getElementById('victory-url').value = customVictoryUrl;
+            document.getElementById('victory-file').value = "";
+
+            refreshPresetDropdown();
+            document.getElementById('preset-selector').value = currentPresetIndex;
             document.getElementById('preset-name').value = appPresets[currentPresetIndex].name;
-            updateDeleteButtonState(currentPresetIndex);
-            
-            renderSettingsForm(gameData); 
+            document.getElementById('setting-total-rounds').value = appPresets[currentPresetIndex].totalRounds || totalRounds;
+
+            renderSettingsForm(appPresets[currentPresetIndex].data || gameData);
             document.getElementById('settings-modal').classList.remove('hidden');
         }
 
-        function refreshPresetDropdown() {
-            const selector = document.getElementById('preset-selector'); selector.innerHTML = '';
-            appPresets.forEach((p, idx) => { const opt = document.createElement('option'); opt.value = idx; opt.text = p.name; selector.appendChild(opt); });
+        function closeSettings() {
+            isSettingsOpen = false;
+            stopPreview();
+            document.getElementById('settings-modal').classList.add('hidden');
+
+            const bgmAudio = document.getElementById('bgm-audio');
+            if (isBgmPlaying && isGameActive && isAudioStarted && !isGameOver && !isGamePaused && (customBgmUrl !== '' || customBgmFileUrl !== '')) {
+                bgmAudio.play().catch(() => {});
+            }
         }
 
-        function updateDeleteButtonState(idx) {
-            const delBtn = document.getElementById('btn-delete-preset');
-            if (idx == 0) {
-                delBtn.disabled = true; delBtn.classList.replace('bg-red-600', 'bg-gray-600'); delBtn.classList.replace('hover:bg-red-500', 'hover:bg-gray-600'); delBtn.classList.replace('shadow-[0_0_5px_red]', 'shadow-none'); delBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        function previewAudio(type) {
+            stopPreview();
+            const previewEl = document.getElementById('preview-audio');
+            let src = '';
+            if (type === 'bgm') {
+                const f = document.getElementById('bgm-file').files[0];
+                const u = document.getElementById('bgm-url').value.trim();
+                src = f ? URL.createObjectURL(f) : u;
             } else {
-                delBtn.disabled = false; delBtn.classList.replace('bg-gray-600', 'bg-red-600'); delBtn.classList.replace('hover:bg-gray-600', 'hover:bg-red-500'); delBtn.classList.replace('shadow-none', 'shadow-[0_0_5px_red]'); delBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                const f = document.getElementById('victory-file').files[0];
+                const u = document.getElementById('victory-url').value.trim();
+                src = f ? URL.createObjectURL(f) : u;
             }
-        }
-
-        function handlePresetChange() {
-            // Auto-simpan form semasa ke preset lama
-            appPresets[currentPresetIndex].data = extractFormData();
-            appPresets[currentPresetIndex].totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5;
-            
-            // Dapatkan index baru
-            const newIdx = document.getElementById('preset-selector').value;
-            currentPresetIndex = newIdx;
-            localStorage.setItem('familyFeudLastPreset_MY', currentPresetIndex);
-
-            // Auto-muat data dari preset baru
-            const newPreset = appPresets[newIdx];
-            document.getElementById('preset-name').value = newPreset.name;
-            document.getElementById('setting-total-rounds').value = newPreset.totalRounds || 5;
-            
-            let dataToLoad = newPreset.data;
-            if (!dataToLoad) {
-                dataToLoad = [];
-                for(let i=0; i<5; i++) dataToLoad.push({ question: "", answers: [] });
+            if (!src) {
+                showToast("Sila masukkan URL atau pilih fail audio dahulu.", true);
+                return;
             }
-            renderSettingsForm(dataToLoad);
-            updateDeleteButtonState(newIdx);
-
-            savePresetsToStorage();
-            triggerFlashHighlight();
-            showToast(`Auto-Muat: '${newPreset.name}'`);
-        }
-
-        function handleTotalRoundsChange() {
-            updateRoundVisibility();
-            appPresets[currentPresetIndex].totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5;
-            savePresetsToStorage();
-            triggerFlashHighlight();
-        }
-
-        function updatePresetName() {
-            const newName = document.getElementById('preset-name').value.trim() || `Preset ${parseInt(currentPresetIndex) + 1}`;
-            appPresets[currentPresetIndex].name = newName;
-            const selector = document.getElementById('preset-selector');
-            selector.options[currentPresetIndex].text = newName;
-        }
-
-        function triggerFlashHighlight() {
-            const container = document.getElementById('settings-form-container');
-            container.classList.remove('flash-highlight'); void container.offsetWidth; container.classList.add('flash-highlight');
-        }
-
-        function deleteSelectedPreset() {
-            const idx = currentPresetIndex; if (idx == 0) return; 
-            showConfirm(`Adakah anda pasti mahu mengosongkan data dalam '${appPresets[idx].name}'?`, () => {
-                const defaultName = `Preset ${parseInt(idx) + 1} (Kosong)`;
-                appPresets[idx].name = defaultName; 
-                const emptyData = [];
-                for(let i=0; i<5; i++) emptyData.push({ question: "", answers: [] });
-                appPresets[idx].data = emptyData; 
-                appPresets[idx].totalRounds = 5;
-                
-                document.getElementById('preset-name').value = defaultName;
-                document.getElementById('setting-total-rounds').value = 5;
-                const selector = document.getElementById('preset-selector');
-                selector.options[idx].text = defaultName;
-
-                renderSettingsForm(emptyData);
-                savePresetsToStorage(); 
-                
-                triggerFlashHighlight();
-                showToast("Slot telah dikosongkan secara automatik.");
+            previewEl.src = src;
+            previewEl.currentTime = 0;
+            previewEl.play().then(() => {
+                showToast(`Memainkan prebiu ${type === 'bgm' ? 'BGM' : 'Lagu Kemenangan'}...`);
+            }).catch(() => {
+                showToast("Gagal memainkan audio. Semak pautan/fail.", true);
             });
         }
 
-        function savePresetsToStorage() {
-            localStorage.setItem('familyFeudPresets_MY', JSON.stringify(appPresets));
-            
-            // Simpan terus ke Cloud (Push) tanpa perlu baca dahulu untuk mengelakkan sangkut di talian
-            if (window.saveToCloud) {
-                const syncData = {
-                    theme: currentTheme,
-                    title: localStorage.getItem('familyFeudTitle_MY') || "Gado-Gado\nMalaysia",
-                    bgmUrl: customBgmUrl,
-                    victoryUrl: customVictoryUrl,
-                    t1Name: document.getElementById('team1-name').innerText,
-                    t2Name: document.getElementById('team2-name').innerText,
-                    totalRounds: totalRounds,
-                    gameData: gameData,
-                    presets: appPresets,
-                    lastUpdate: new Date().toISOString()
-                };
-                window.saveToCloud(syncData);
+        function stopPreview() {
+            const previewEl = document.getElementById('preview-audio');
+            if (previewEl) {
+                previewEl.pause();
+                previewEl.currentTime = 0;
             }
+        }
+
+        function refreshPresetDropdown() {
+            const selector = document.getElementById('preset-selector');
+            selector.innerHTML = '';
+            appPresets.forEach((p, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.text = p.name;
+                selector.appendChild(opt);
+            });
         }
 
         function extractFormData() {
-            const FIXED_POINTS = [50, 40, 30, 20, 15, 10, 5, 2]; const newData = [];
+            const newData = [];
             for (let i = 0; i < 5; i++) {
-                const qText = document.getElementById(`q${i}-text`).value.trim(); const answers = [];
+                const qInput = document.getElementById(`q${i}-text`);
+                const qText = qInput ? qInput.value.trim() : "";
+                const answers = [];
                 for (let j = 0; j < 8; j++) {
-                    const aText = document.getElementById(`q${i}-a${j}-text`).value.trim();
-                    if (aText !== "") answers.push({ text: aText, points: FIXED_POINTS[j] });
+                    const aInput = document.getElementById(`q${i}-a${j}-text`);
+                    const aText = aInput ? aInput.value.trim() : "";
+                    if (aText !== "") {
+                        answers.push({ text: aText, points: FIXED_POINTS[j] });
+                    }
                 }
-                answers.sort((a, b) => b.points - a.points); newData.push({ question: qText, answers: answers });
+                newData.push({ question: qText, answers: answers });
             }
-            while(newData.length < 5) newData.push({ question: "", answers: [] }); return newData;
+            return newData;
+        }
+
+        function saveCurrentFormIntoPreset(index) {
+            const formRounds = extractFormData();
+            const tr = parseInt(document.getElementById('setting-total-rounds').value) || 5;
+            const pName = document.getElementById('preset-name').value.trim() || `Preset ${index + 1}`;
+            appPresets[index] = {
+                name: pName,
+                totalRounds: tr,
+                data: formRounds
+            };
+        }
+
+        function flashFormContainer() {
+            const container = document.getElementById('settings-form-container');
+            if (!container) return;
+            container.classList.remove('flash-sync');
+            void container.offsetWidth;
+            container.classList.add('flash-sync');
+        }
+
+        function onPresetChange() {
+            // Auto-simpan borang semasa ke preset lama
+            saveCurrentFormIntoPreset(currentPresetIndex);
+
+            // Tukar ke preset baharu & auto-muat
+            const newIdx = parseInt(document.getElementById('preset-selector').value) || 0;
+            currentPresetIndex = newIdx;
+            const selected = appPresets[currentPresetIndex];
+
+            document.getElementById('preset-name').value = selected.name;
+            document.getElementById('setting-total-rounds').value = selected.totalRounds || 5;
+            totalRounds = selected.totalRounds || 5;
+            gameData = JSON.parse(JSON.stringify(selected.data || createEmptyRounds()));
+
+            renderSettingsForm(gameData);
+            flashFormContainer();
+            pushMasterDataToCloud();
+            showToast(`Auto-muat '${selected.name}' berjaya!`);
+        }
+
+        function onPresetNameInput() {
+            const newName = document.getElementById('preset-name').value;
+            appPresets[currentPresetIndex].name = newName || `Preset ${currentPresetIndex + 1}`;
+            const selector = document.getElementById('preset-selector');
+            if (selector.options[currentPresetIndex]) {
+                selector.options[currentPresetIndex].text = appPresets[currentPresetIndex].name;
+            }
+        }
+
+        function onTotalRoundsChange() {
+            const tr = parseInt(document.getElementById('setting-total-rounds').value) || 5;
+            appPresets[currentPresetIndex].totalRounds = tr;
+            totalRounds = tr;
+            updateRoundVisibility();
+        }
+
+        function clearCurrentPreset() {
+            const idx = currentPresetIndex;
+            showConfirm(`Kosongkan semua soalan dalam '${appPresets[idx].name}' dan kembalikan nama asal?`, () => {
+                appPresets[idx] = {
+                    name: `Preset ${idx + 1} (Kosong)`,
+                    totalRounds: 5,
+                    data: createEmptyRounds()
+                };
+                totalRounds = 5;
+                gameData = createEmptyRounds();
+
+                refreshPresetDropdown();
+                document.getElementById('preset-selector').value = idx;
+                document.getElementById('preset-name').value = appPresets[idx].name;
+                document.getElementById('setting-total-rounds').value = 5;
+                renderSettingsForm(gameData);
+                flashFormContainer();
+                pushMasterDataToCloud();
+                showToast(`Slot Preset ${idx + 1} telah dikosongkan sepenuhnya.`);
+            });
         }
 
         function renderSettingsForm(dataToRender) {
-            const container = document.getElementById('settings-form-container'); container.innerHTML = ''; const FIXED_POINTS = [50, 40, 30, 20, 15, 10, 5, 2];
+            const container = document.getElementById('settings-form-container');
+            container.innerHTML = '';
+
             for (let i = 0; i < 5; i++) {
-                const round = dataToRender[i] || { question: "", answers: [] }; let answersHtml = '';
+                const round = (dataToRender && dataToRender[i]) ? dataToRender[i] : { question: "", answers: [] };
+                let answersHtml = '';
                 for (let j = 0; j < 8; j++) {
-                    const ans = round.answers[j] || { text: "" };
-                    answersHtml += `<div class="flex items-center space-x-2"><span class="text-gray-400 w-6 text-right font-bold">${j + 1}.</span><input type="text" id="q${i}-a${j}-text" value="${escapeHTML(ans.text)}" placeholder="Teks Jawapan" class="flex-grow bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white focus:outline-none focus:border-yellow-400"><input type="number" id="q${i}-a${j}-points" value="${FIXED_POINTS[j]}" class="w-16 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-gray-500 text-center cursor-not-allowed opacity-80" readonly></div>`;
+                    const ans = (round.answers && round.answers[j]) ? round.answers[j] : { text: "" };
+                    answersHtml += `
+                        <div class="flex items-center space-x-2">
+                            <span class="text-gray-400 w-5 text-right font-bold text-sm">${j + 1}.</span>
+                            <input type="text" id="q${i}-a${j}-text" value="${escapeHtml(ans.text)}" placeholder="Jawapan ${j + 1}" class="flex-grow bg-gray-800 border border-gray-600 rounded px-2.5 py-1.5 text-white text-sm focus:outline-none focus:border-yellow-400">
+                            <input type="number" value="${FIXED_POINTS[j]}" class="w-14 bg-gray-950 border border-gray-700 rounded px-1.5 py-1.5 text-gray-500 text-center text-sm cursor-not-allowed" readonly title="Markah dikunci">
+                        </div>
+                    `;
                 }
-                container.innerHTML += `<div id="round-setting-container-${i}" class="bg-gray-900 p-5 rounded-lg border border-gray-700 shadow-inner"><label class="block text-yellow-400 font-bold mb-2 text-xl">Soalan Pusingan ${i + 1}:</label><input type="text" id="q${i}-text" value="${escapeHTML(round.question)}" placeholder="Taip soalan di sini..." class="w-full bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white mb-4 focus:outline-none focus:border-yellow-400 text-lg"><div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">${answersHtml}</div></div>`;
+
+                container.innerHTML += `
+                    <div id="round-setting-container-${i}" class="bg-gray-900 p-4 rounded-xl border border-gray-700">
+                        <label class="block text-yellow-400 font-bold mb-2 text-lg">Soalan Pusingan ${i + 1}:</label>
+                        <input type="text" id="q${i}-text" value="${escapeHtml(round.question)}" placeholder="Taip soalan pusingan ${i + 1} di sini..." class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-white mb-3 focus:outline-none focus:border-yellow-400 text-base">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-2.5">
+                            ${answersHtml}
+                        </div>
+                    </div>
+                `;
             }
             updateRoundVisibility();
         }
 
         function updateRoundVisibility() {
             const tr = parseInt(document.getElementById('setting-total-rounds').value) || 5;
-            for (let i = 0; i < 5; i++) { const el = document.getElementById(`round-setting-container-${i}`); if (el) el.classList.toggle('hidden', i >= tr); }
-        }
-
-        function closeSettings() { 
-            isGamePaused = false; 
-            document.getElementById('settings-modal').classList.add('hidden'); 
-            stopPreview(); 
-            
-            const bgmAudio = document.getElementById('bgm-audio');
-            if (isBgmPlaying && isGameActive && isAudioStarted && !isGameOver) {
-                bgmAudio.play().catch(e => console.warn(e));
-            }
-        }
-
-        function previewAudio(type) {
-            stopPreview();
-            let url = '';
-            let fileInput = document.getElementById(type + '-file').files[0];
-            if (fileInput) {
-                url = URL.createObjectURL(fileInput);
-            } else {
-                url = document.getElementById(type + '-url').value.trim();
-            }
-            if (url) {
-                currentPreviewAudio = new Audio(url);
-                currentPreviewAudio.play().catch(e => showToast("Gagal memainkan prebiu audio.", true));
-            } else {
-                showToast("Sila masukkan URL atau pilih fail audio terlebih dahulu.", true);
-            }
-        }
-
-        function stopPreview() {
-            if (currentPreviewAudio) {
-                currentPreviewAudio.pause();
-                currentPreviewAudio.src = "";
-                currentPreviewAudio = null;
+            for (let i = 0; i < 5; i++) {
+                const el = document.getElementById(`round-setting-container-${i}`);
+                if (el) el.classList.toggle('hidden', i >= tr);
             }
         }
 
         function saveSettings() {
+            const bgmUrlInput = document.getElementById('bgm-url').value.trim();
             const bgmFileInput = document.getElementById('bgm-file').files[0];
+            const victoryUrlInput = document.getElementById('victory-url').value.trim();
+            const victoryFileInput = document.getElementById('victory-file').files[0];
+
             if (bgmFileInput) {
                 if (customBgmFileUrl) URL.revokeObjectURL(customBgmFileUrl);
-                customBgmFileUrl = URL.createObjectURL(bgmFileInput); document.getElementById('bgm-audio').src = customBgmFileUrl; customBgmUrl = ''; localStorage.setItem('familyFeudBGMUrl_MY', ''); 
+                customBgmFileUrl = URL.createObjectURL(bgmFileInput);
+                customBgmUrl = '';
             } else {
-                customBgmUrl = document.getElementById('bgm-url').value.trim(); document.getElementById('bgm-audio').src = customBgmUrl; localStorage.setItem('familyFeudBGMUrl_MY', customBgmUrl); customBgmFileUrl = '';
+                customBgmUrl = bgmUrlInput;
+                customBgmFileUrl = '';
             }
-            const vicFileInput = document.getElementById('victory-file').files[0];
-            if (vicFileInput) {
+            document.getElementById('bgm-audio').src = customBgmFileUrl || customBgmUrl;
+
+            if (victoryFileInput) {
                 if (customVictoryFileUrl) URL.revokeObjectURL(customVictoryFileUrl);
-                customVictoryFileUrl = URL.createObjectURL(vicFileInput); document.getElementById('victory-audio').src = customVictoryFileUrl; customVictoryUrl = ''; localStorage.setItem('familyFeudVictoryUrl_MY', '');
+                customVictoryFileUrl = URL.createObjectURL(victoryFileInput);
+                customVictoryUrl = '';
             } else {
-                customVictoryUrl = document.getElementById('victory-url').value.trim(); document.getElementById('victory-audio').src = customVictoryUrl; localStorage.setItem('familyFeudVictoryUrl_MY', customVictoryUrl); customVictoryFileUrl = '';
+                customVictoryUrl = victoryUrlInput;
+                customVictoryFileUrl = '';
             }
+            document.getElementById('victory-audio').src = customVictoryFileUrl || customVictoryUrl;
 
-            const titleInput = document.getElementById('setting-game-title').value.trim() || "Gado-Gado\nMalaysia"; document.getElementById('game-title-display').innerHTML = titleInput.replace(/\n/g, '<br>'); localStorage.setItem('familyFeudTitle_MY', titleInput);
-            const t1Input = document.getElementById('setting-t1-name').value.trim() || "Kumpulan 1"; const t2Input = document.getElementById('setting-t2-name').value.trim() || "Kumpulan 2";
-            document.getElementById('team1-name').innerText = t1Input; document.getElementById('team2-name').innerText = t2Input; localStorage.setItem('familyFeudT1Name_MY', t1Input); localStorage.setItem('familyFeudT2Name_MY', t2Input);
-            currentTheme = document.getElementById('setting-theme').value; localStorage.setItem('familyFeudTheme_MY', currentTheme); document.body.setAttribute('data-theme', currentTheme);
-            totalRounds = parseInt(document.getElementById('setting-total-rounds').value) || 5; localStorage.setItem('familyFeudTotalRounds_MY', totalRounds);
-            
-            const newData = extractFormData(); localStorage.setItem(STORAGE_KEY, JSON.stringify(newData)); gameData = newData;
-            
-            appPresets[currentPresetIndex].data = newData;
-            appPresets[currentPresetIndex].totalRounds = totalRounds;
-            savePresetsToStorage();
+            gameTitle = document.getElementById('setting-game-title').value.trim() || "Gado-Gado\nMalaysia";
+            document.getElementById('game-title-display').innerHTML = escapeHtml(gameTitle).replace(/\n/g, '<br>');
 
-            if (window.saveToCloud) window.saveToCloud({ theme: currentTheme, title: titleInput, bgmUrl: customBgmUrl, victoryUrl: customVictoryUrl, t1Name: t1Input, t2Name: t2Input, totalRounds: totalRounds, gameData: newData, presets: appPresets });
-            
-            closeSettings(); showAlert("✅ Tetapan berjaya disimpan (Lokal & Cloud)! Membawa anda ke skrin utama."); returnToIntro();
+            const t1 = document.getElementById('setting-t1-name').value.trim() || "Kumpulan 1";
+            const t2 = document.getElementById('setting-t2-name').value.trim() || "Kumpulan 2";
+            document.getElementById('team1-name').innerText = t1;
+            document.getElementById('team2-name').innerText = t2;
+
+            currentTheme = document.getElementById('setting-theme').value;
+            document.body.setAttribute('data-theme', currentTheme);
+
+            saveCurrentFormIntoPreset(currentPresetIndex);
+            totalRounds = appPresets[currentPresetIndex].totalRounds;
+            gameData = JSON.parse(JSON.stringify(appPresets[currentPresetIndex].data));
+
+            pushMasterDataToCloud();
+            closeSettings();
+            returnToIntro();
+            showToast("Tetapan & Preset berjaya disimpan!");
         }
 
+        function requestResetToDefault() {
+            showConfirm("Adakah anda pasti mahu kembali ke tetapan dan soalan lalai (default)?", () => {
+                appPresets = createDefaultPresets();
+                currentPresetIndex = 0;
+                totalRounds = 5;
+                gameData = JSON.parse(JSON.stringify(defaultGameData));
+                currentTheme = 'classic';
+                gameTitle = "Gado-Gado\nMalaysia";
+                document.body.setAttribute('data-theme', currentTheme);
+                document.getElementById('game-title-display').innerHTML = "Gado-Gado<br>Malaysia";
+                document.getElementById('team1-name').innerText = "Kumpulan 1";
+                document.getElementById('team2-name').innerText = "Kumpulan 2";
+
+                pushMasterDataToCloud();
+                closeSettings();
+                returnToIntro();
+                showToast("Berjaya reset ke tetapan asal.");
+            });
+        }
+
+        function requestRestartGame() {
+            showConfirm("Mula semula permainan dari pusingan pertama?", () => {
+                closeSettings();
+                returnToIntro();
+                showToast("Permainan dimulakan semula.");
+            });
+        }
+
+        // --- Cetak Kad Host (Lengkap Tips & Hotkey) ---
         function printQuestions() {
+            saveCurrentFormIntoPreset(currentPresetIndex);
+            const printData = appPresets[currentPresetIndex].data;
+            const printRounds = appPresets[currentPresetIndex].totalRounds || 5;
             const printWindow = window.open('', '_blank');
-            let htmlContent = `<!DOCTYPE html><html lang="ms"><head><title>Cetak Kad Host - Gado-Gado</title><style>body { font-family: Arial; padding: 20px; } h1 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; } .round-container { margin-bottom: 40px; page-break-inside: avoid; } .question-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; background: #eee; padding: 10px; border-radius: 5px; } .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .answer-box { border: 2px solid #333; display: flex; font-size: 1.1rem; } .num { background: #333; color: #fff; padding: 10px 15px; font-weight: bold; } .text { flex-grow: 1; padding: 10px; font-weight: bold; text-transform: uppercase; } .points { background: #ddd; padding: 10px 15px; font-weight: bold; border-left: 2px solid #333; text-align: center; width: 40px; } .empty-box { border: 2px dashed #999; display: flex; color: #999; } @media print { .no-print { display: none !important; } body { padding: 0; } }</style></head><body><div class="no-print" style="text-align:center; margin-bottom: 20px;"><button onclick="window.print()" style="padding: 10px 20px; font-size: 18px; cursor: pointer; background: #000; color:#fff; border:none; border-radius:5px;">Cetak Sekarang</button></div><h1>Kad Rujukan Host - Gado-Gado</h1><div style="background: #f9f9f9; border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px;"><h3 style="margin-top:0; margin-bottom: 10px;">💡 Tips Permainan & Hotkey:</h3><ul style="margin-bottom:0; padding-left: 20px; font-size: 1.1rem; line-height: 1.5;"><li>Tekan nombor <strong>1 - 8</strong> untuk buka kad jawapan pantas.</li><li>Tekan huruf <strong>'X'</strong> untuk tayangkan STRIKE.</li><li>Klik pada nama kumpulan pada aplikasi untuk menukar giliran secara manual.</li></ul></div>`;
-            gameData.slice(0, totalRounds).forEach((round, index) => {
-                htmlContent += `<div class="round-container"><div class="question-title">Pusingan ${index + 1}: ${round.question || '(Tiada Soalan)'}</div><div class="grid">`;
+            if (!printWindow) {
+                showAlert("Sila benarkan pop-up pelayar untuk mencetak kad rujukan hos.");
+                return;
+            }
+
+            let htmlContent = `
+            <!DOCTYPE html>
+            <html lang="ms">
+            <head>
+                <meta charset="UTF-8">
+                <title>Kad Rujukan Host - Gado-Gado</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; color: #000; }
+                    h1 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; }
+                    .tips-box { background: #f4f4f4; border: 1px solid #bbb; padding: 14px; margin-bottom: 20px; border-radius: 6px; }
+                    .round-container { margin-bottom: 30px; page-break-inside: avoid; }
+                    .question-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 10px; background: #eee; padding: 8px 12px; border-radius: 5px; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+                    .answer-box { border: 2px solid #333; display: flex; font-size: 1rem; }
+                    .num { background: #333; color: #fff; padding: 8px 12px; font-weight: bold; }
+                    .text { flex-grow: 1; padding: 8px; font-weight: bold; text-transform: uppercase; }
+                    .points { background: #ddd; padding: 8px 12px; font-weight: bold; border-left: 2px solid #333; text-align: center; width: 38px; }
+                    .empty-box { border: 1px dashed #999; display: flex; color: #999; }
+                    @media print { .no-print { display: none !important; } body { padding: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="no-print" style="text-align:center; margin-bottom: 16px;">
+                    <button onclick="window.print()" style="padding: 10px 22px; font-size: 16px; cursor: pointer; background: #000; color:#fff; border:none; border-radius:6px;">🖨️ Cetak Sekarang</button>
+                </div>
+                <h1>Kad Rujukan Host - ${escapeHtml(gameTitle.replace(/\n/g, ' '))}</h1>
+                <div class="tips-box">
+                    <h3 style="margin-top:0; margin-bottom: 8px;">💡 Tips Permainan & Hotkey (Rujukan Host):</h3>
+                    <ul style="margin:0; padding-left: 20px; line-height: 1.6;">
+                        <li>Tekan nombor <strong>1 - 8</strong> pada papan kekunci untuk membuka kad jawapan dengan pantas.</li>
+                        <li>Tekan huruf <strong>'X'</strong> pada papan kekunci untuk memaparkan <strong>STRIKE (Salah)</strong>.</li>
+                        <li>Klik kotak nama kumpulan pada skrin untuk menukar giliran secara manual.</li>
+                        <li>Gunakan <strong>📱 Skrin Kawalan Hos</strong> di dalam Tetapan untuk kawalan sentuhan telefon/tablet.</li>
+                    </ul>
+                </div>
+            `;
+
+            printData.slice(0, printRounds).forEach((round, index) => {
+                htmlContent += `
+                <div class="round-container">
+                    <div class="question-title">Pusingan ${index + 1}: ${escapeHtml(round.question || '(Tiada Soalan)')}</div>
+                    <div class="grid">`;
                 for (let i = 0; i < 8; i++) {
-                    if (round.answers && round.answers[i] && round.answers[i].text.trim() !== "") htmlContent += `<div class="answer-box"><div class="num">${i + 1}</div><div class="text">${round.answers[i].text}</div><div class="points">${round.answers[i].points}</div></div>`;
-                    else htmlContent += `<div class="empty-box"><div class="num" style="background:#999;">${i + 1}</div><div class="text" style="font-weight:normal;">(Tiada Jawapan)</div><div class="points" style="border-color:#999; background:#eee;">-</div></div>`;
+                    if (round.answers && round.answers[i] && round.answers[i].text.trim() !== "") {
+                        htmlContent += `
+                        <div class="answer-box">
+                            <div class="num">${i + 1}</div>
+                            <div class="text">${escapeHtml(round.answers[i].text)}</div>
+                            <div class="points">${round.answers[i].points}</div>
+                        </div>`;
+                    } else {
+                        htmlContent += `
+                        <div class="empty-box">
+                            <div class="num" style="background:#999;">${i + 1}</div>
+                            <div class="text" style="font-weight:normal;">(Kosong)</div>
+                            <div class="points" style="border-color:#999; background:#eee;">-</div>
+                        </div>`;
+                    }
                 }
                 htmlContent += `</div></div>`;
             });
+
             htmlContent += `</body></html>`;
-            printWindow.document.write(htmlContent); printWindow.document.close(); setTimeout(() => { printWindow.print(); }, 500);
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            setTimeout(() => { printWindow.print(); }, 400);
         }
 
-        function loadRound(roundIndex) {
-            if (roundIndex >= totalRounds) return;
-            const roundData = gameData[roundIndex]; revealedAnswers = new Array(roundData.answers.length).fill(false);
-            pot = 0; currentStrikes = 0; updateStrikeUI();
-            document.getElementById('round-number').innerText = roundIndex + 1; document.getElementById('question-text').innerText = roundData.question;
-            const nextBtn = document.getElementById('btn-next-round');
-            if (nextBtn) {
-                if (countdownInterval) clearInterval(countdownInterval); isCountingDown = false; nextBtn.classList.remove('timeout-btn');
-                if (roundIndex >= totalRounds - 1) { nextBtn.innerHTML = "<span class='relative z-10'>TAMAT 🏁</span>"; nextBtn.classList.replace('bg-green-600', 'bg-yellow-600'); nextBtn.classList.replace('hover:bg-green-700', 'hover:bg-yellow-700'); } 
-                else { nextBtn.innerHTML = "<span class='relative z-10'>SETERUSNYA ➡️</span>"; nextBtn.classList.replace('bg-yellow-600', 'bg-green-600'); nextBtn.classList.replace('hover:bg-yellow-700', 'hover:bg-green-700'); }
-            }
-            missedRevealed = false; updatePotDisplay(); renderBoard(roundData); startQuestionTimer();
+        // --- Skrin Kawalan Hos & Penyegerakan Masa Nyata ---
+        function openHostView() {
+            document.getElementById('settings-modal').classList.add('hidden');
+            stopPreview();
+            isSettingsOpen = false;
+            isHostViewOpen = true;
+            document.getElementById('host-view-modal').classList.remove('hidden');
+            renderHostView();
+            startLiveSync();
         }
 
-        function renderBoard(roundData) {
-            const board = document.getElementById('board'); board.innerHTML = ''; 
-            const totalSlots = Math.max(roundData.answers.length, roundData.answers.length % 2 === 0 ? roundData.answers.length : roundData.answers.length + 1);
-            for (let i = 0; i < totalSlots; i++) {
-                if (i < roundData.answers.length) {
-                    const ans = roundData.answers[i];
-                    board.innerHTML += `<div class="flip-card" id="card-${i}" onclick="revealAnswer(${i})"><div class="flip-card-inner"><div class="flip-card-front"><span class="w-12 h-12 border-2 border-blue-400 rounded-full flex items-center justify-center bg-blue-900 text-white text-3xl font-extrabold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">${i + 1}</span></div><div class="flip-card-back"><div class="answer-text">${ans.text}</div><div class="answer-score">${ans.points}</div></div></div></div>`;
+        function closeHostView() {
+            isHostViewOpen = false;
+            document.getElementById('host-view-modal').classList.add('hidden');
+        }
+
+        function returnToSettingsFromHost() {
+            closeHostView();
+            openSettings();
+        }
+
+        function hostConfirmExit() {
+            showConfirm("Adakah anda pasti mahu keluar dan kembali ke skrin utama untuk semua skrin?", () => {
+                hostSendAction('exitGame');
+            });
+        }
+
+        function renderHostView() {
+            if (!isHostViewOpen) return;
+            const roundData = gameData[currentRound] || { question: "(Tiada Soalan)", answers: [] };
+            document.getElementById('host-round-badge').innerText = `Pusingan ${currentRound + 1} / ${totalRounds}`;
+            document.getElementById('host-question-text').innerText = roundData.question || "(Tiada Soalan)";
+
+            // Indikator Status Permainan
+            const statusBadge = document.getElementById('host-game-status-badge');
+            if (statusBadge) {
+                if (isGameOver) {
+                    statusBadge.innerText = "🔴 Permainan Tamat";
+                    statusBadge.className = "text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-900 text-red-200 border border-red-500 uppercase tracking-wider";
+                } else if (!isGameActive) {
+                    statusBadge.innerText = "⚪ Belum Mula";
+                    statusBadge.className = "text-xs font-bold px-2.5 py-0.5 rounded-full bg-gray-700 text-gray-200 border border-gray-500 uppercase tracking-wider";
+                } else if (isGamePaused) {
+                    statusBadge.innerText = "🟡 Dihentikan (Pause)";
+                    statusBadge.className = "text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-900 text-amber-200 border border-amber-400 uppercase tracking-wider animate-pulse";
                 } else {
-                    board.innerHTML += `<div class="flip-card" style="cursor: default;"><div class="flip-card-inner"><div class="flip-card-front" style="background: transparent; border-color: rgba(50, 130, 184, 0.3);"></div></div></div>`;
+                    statusBadge.innerText = "🟢 Sedang Berlangsung";
+                    statusBadge.className = "text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-900 text-emerald-200 border border-emerald-400 uppercase tracking-wider";
                 }
             }
+
+            // Butang Mula
+            const hostStartBtn = document.getElementById('host-btn-start');
+            if (hostStartBtn) {
+                if (isGameActive && !isGameOver) {
+                    hostStartBtn.disabled = true;
+                    hostStartBtn.innerHTML = '<span>✅</span> <span>Sedang Mula</span>';
+                    hostStartBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    hostStartBtn.disabled = false;
+                    hostStartBtn.innerHTML = '<span>▶️</span> <span>Mula</span>';
+                    hostStartBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            // Butang Henti / Sambung
+            const hostPauseBtn = document.getElementById('host-btn-pause');
+            if (hostPauseBtn) {
+                if (!isGameActive || isGameOver) {
+                    hostPauseBtn.disabled = true;
+                    hostPauseBtn.innerHTML = '<span>⏸️</span> <span>Henti</span>';
+                    hostPauseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    hostPauseBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                    hostPauseBtn.classList.add('bg-amber-600', 'hover:bg-amber-500');
+                } else {
+                    hostPauseBtn.disabled = false;
+                    hostPauseBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    if (isGamePaused) {
+                        hostPauseBtn.innerHTML = '<span>▶️</span> <span>Sambung</span>';
+                        hostPauseBtn.classList.remove('bg-amber-600', 'hover:bg-amber-500');
+                        hostPauseBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-500');
+                    } else {
+                        hostPauseBtn.innerHTML = '<span>⏸️</span> <span>Henti</span>';
+                        hostPauseBtn.classList.remove('bg-emerald-600', 'hover:bg-emerald-500');
+                        hostPauseBtn.classList.add('bg-amber-600', 'hover:bg-amber-500');
+                    }
+                }
+            }
+
+            // Mini Scoreboard
+            document.getElementById('host-t1-name').innerText = document.getElementById('team1-name').innerText;
+            document.getElementById('host-t2-name').innerText = document.getElementById('team2-name').innerText;
+            document.getElementById('host-t1-score').innerText = team1Score;
+            document.getElementById('host-t2-score').innerText = team2Score;
+            document.getElementById('host-pot').innerText = pot;
+
+            const strikeStr = Array(currentStrikes).fill('X').join(' ');
+            document.getElementById('host-t1-strikes').innerText = activeTeam === 1 ? strikeStr : '';
+            document.getElementById('host-t2-strikes').innerText = activeTeam === 2 ? strikeStr : '';
+
+            document.getElementById('host-t1-card').classList.toggle('border-yellow-400', activeTeam === 1);
+            document.getElementById('host-t1-card').classList.toggle('border-transparent', activeTeam !== 1);
+            document.getElementById('host-t2-card').classList.toggle('border-yellow-400', activeTeam === 2);
+            document.getElementById('host-t2-card').classList.toggle('border-transparent', activeTeam !== 2);
+
+            // Butang BGM Hos
+            const hostBgmBtn = document.getElementById('host-bgm-btn');
+            if (hostBgmBtn) {
+                hostBgmBtn.innerHTML = isBgmPlaying ? '<span>🔊</span> <span>BGM (ON)</span>' : '<span>🔇</span> <span>BGM (OFF)</span>';
+            }
+
+            // Grid Jawapan Sentuhan
+            const grid = document.getElementById('host-answers-grid');
+            grid.innerHTML = '';
+            const answers = roundData.answers || [];
+            if (answers.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center text-gray-400 py-8">Tiada jawapan ditetapkan untuk pusingan ini.</div>`;
+                return;
+            }
+
+            answers.forEach((ans, idx) => {
+                if (!ans || ans.text.trim() === "") return;
+                const isRev = Boolean(revealedAnswers[idx]);
+                grid.innerHTML += `
+                    <button type="button" onclick="hostSendAction('reveal', { index: ${idx} })" ${isRev ? 'disabled' : ''}
+                        class="w-full p-3 rounded-xl border-2 flex items-center justify-between gap-3 transition active:scale-95 text-left ${
+                            isRev
+                                ? 'bg-emerald-950 border-emerald-500 text-emerald-200 opacity-75 cursor-default'
+                                : 'bg-gray-800 hover:bg-gray-700 border-blue-500 text-white shadow-md'
+                        }">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                                isRev ? 'bg-emerald-600 text-white' : 'bg-blue-700 text-white'
+                            }">${idx + 1}</span>
+                            <span class="font-bold text-base md:text-lg uppercase truncate">${escapeHtml(ans.text)}</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="px-2.5 py-1 rounded-lg bg-black bg-opacity-50 font-bold text-yellow-400">${ans.points}</span>
+                            <span class="text-sm">${isRev ? '✅' : '👆'}</span>
+                        </div>
+                    </button>
+                `;
+            });
         }
 
-        function revealAnswer(index) {
-            if (isGameOver || !gameData[currentRound] || !gameData[currentRound].answers) return;
-            if (revealedAnswers[index]) return; 
-            const card = document.getElementById(`card-${index}`); card.classList.add('revealed', activeTeam === 1 ? 'team1-ans' : 'team2-ans'); revealedAnswers[index] = true;
-            const points = gameData[currentRound].answers[index].points; pot += points; updatePotDisplay();
-            if (activeTeam === 1) team1Score += points; else team2Score += points; updateScores(); playDingSound(); startQuestionTimer(); checkWinner();
+        function hostSendAction(type, payload = {}) {
+            const cmdObj = {
+                id: DEVICE_ID + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                sender: DEVICE_ID,
+                type: type,
+                payload: payload,
+                ts: Date.now()
+            };
+            lastHandledCmdId = cmdObj.id;
+
+            // Laksanakan terus pada skrin tempatan
+            executeHostCommandLocally(type, payload, false);
+
+            // Hantar ke tab pelayar lain & Firebase Cloud
+            if (liveBroadcastChannel) {
+                try { liveBroadcastChannel.postMessage({ cmd: cmdObj }); } catch (e) {}
+            }
+            if (window.publishHostCommand) window.publishHostCommand(cmdObj);
         }
 
-        function checkWinner() {
-            const allRevealed = revealedAnswers.length > 0 && revealedAnswers.every(ans => ans === true);
-            if (allRevealed && !isCountingDown) { if (questionTimerInterval) clearInterval(questionTimerInterval); startNextRoundTimer(8); }
+        function executeHostCommandLocally(type, payload, isRemoteTrigger) {
+            if (type === 'startGame') startAudio(isRemoteTrigger);
+            else if (type === 'togglePause') togglePauseGame(isRemoteTrigger);
+            else if (type === 'exitGame') returnToIntro(isRemoteTrigger);
+            else if (type === 'reveal' && typeof payload.index === 'number') revealAnswer(payload.index, isRemoteTrigger);
+            else if (type === 'strike') showStrike(isRemoteTrigger);
+            else if (type === 'nextRound') nextRound(isRemoteTrigger);
+            else if (type === 'toggleBGM') toggleBGM(isRemoteTrigger);
+            else if (type === 'setTurn' && (payload.team === 1 || payload.team === 2)) setTurn(payload.team, isRemoteTrigger);
+
+            if (isHostViewOpen) renderHostView();
         }
 
-        function updatePotDisplay() { document.getElementById('round-pot').innerText = pot; }
-        function updateScores() { document.getElementById('team1-score').innerText = team1Score; document.getElementById('team2-score').innerText = team2Score; }
-        
-        function updateStrikeUI() {
-            const t1Strikes = document.getElementById('team1-strikes'); const t2Strikes = document.getElementById('team2-strikes');
-            if (t1Strikes && t2Strikes) {
-                let strikeText = ''; for (let i = 0; i < currentStrikes; i++) strikeText += 'X ';
-                t1Strikes.innerText = activeTeam === 1 ? strikeText.trim() : ''; t2Strikes.innerText = activeTeam === 2 ? strikeText.trim() : '';
+        function broadcastLiveState() {
+            const stateObj = {
+                sender: DEVICE_ID,
+                currentRound,
+                totalRounds,
+                revealedAnswers,
+                missedRevealed,
+                team1Score,
+                team2Score,
+                pot,
+                activeTeam,
+                currentStrikes,
+                isBgmPlaying,
+                isGameActive,
+                isGamePaused,
+                isGameOver,
+                updatedAt: Date.now()
+            };
+            if (liveBroadcastChannel) {
+                try { liveBroadcastChannel.postMessage({ state: stateObj }); } catch (e) {}
+            }
+            if (window.publishLiveState) window.publishLiveState(stateObj);
+            if (isHostViewOpen) renderHostView();
+        }
+
+        function applyIncomingState(s) {
+            if (!s || s.sender === DEVICE_ID) return;
+            const roundChanged = typeof s.currentRound === 'number' && s.currentRound !== currentRound;
+            if (typeof s.totalRounds === 'number') totalRounds = s.totalRounds;
+            if (roundChanged) {
+                currentRound = s.currentRound;
+                loadRound(currentRound, false);
+            }
+            if (Array.isArray(s.revealedAnswers)) {
+                revealedAnswers = s.revealedAnswers;
+                revealedAnswers.forEach((rev, idx) => {
+                    const card = document.getElementById(`card-${idx}`);
+                    if (card && rev) card.classList.add('revealed');
+                });
+            }
+            if (typeof s.team1Score === 'number') team1Score = s.team1Score;
+            if (typeof s.team2Score === 'number') team2Score = s.team2Score;
+            if (typeof s.pot === 'number') pot = s.pot;
+            if (typeof s.activeTeam === 'number') activeTeam = s.activeTeam;
+            if (typeof s.currentStrikes === 'number') currentStrikes = s.currentStrikes;
+            if (typeof s.isBgmPlaying === 'boolean') isBgmPlaying = s.isBgmPlaying;
+            if (typeof s.isGameActive === 'boolean') {
+                isGameActive = s.isGameActive;
+                const overlay = document.getElementById('audio-overlay');
+                if (overlay) overlay.classList.toggle('hidden', isGameActive);
+            }
+            if (typeof s.isGamePaused === 'boolean') isGamePaused = s.isGamePaused;
+            if (typeof s.isGameOver === 'boolean') isGameOver = s.isGameOver;
+
+            updateScores();
+            updatePotDisplay();
+            updateActiveTeamUI();
+            updateStrikeUI();
+            updatePauseUI();
+            updateBgmUI();
+            updateQTimerUI();
+            if (isHostViewOpen) renderHostView();
+        }
+
+        function handleIncomingCommand(cmd) {
+            if (!cmd || !cmd.id || cmd.sender === DEVICE_ID || cmd.id === lastHandledCmdId) return;
+            // Abaikan arahan lama (> 15 saat) semasa mula sambung
+            if (cmd.ts && Date.now() - cmd.ts > 15000) return;
+            lastHandledCmdId = cmd.id;
+            executeHostCommandLocally(cmd.type, cmd.payload || {}, true);
+        }
+
+        let liveSyncStarted = false;
+        function startLiveSync() {
+            if (liveSyncStarted) return;
+            liveSyncStarted = true;
+
+            if (liveBroadcastChannel) {
+                liveBroadcastChannel.onmessage = (event) => {
+                    if (event.data?.cmd) handleIncomingCommand(event.data.cmd);
+                    if (event.data?.state) applyIncomingState(event.data.state);
+                };
+            }
+            if (window.subscribeLiveSync) {
+                window.subscribeLiveSync(applyIncomingState, handleIncomingCommand);
             }
         }
 
-        function showStrike() {
-            if (isGameOver) return; currentStrikes++; if (currentStrikes > 3) currentStrikes = 3; updateStrikeUI();
-            const overlay = document.getElementById('strike-overlay'); const container = document.getElementById('strike-container');
-            container.innerHTML = ''; for(let i = 0; i < currentStrikes; i++) container.innerHTML += '<div class="strike-x">X</div>';
-            overlay.classList.add('show'); playBuzzerSound();
-            setTimeout(() => {
-                overlay.classList.remove('show');
-                if (currentStrikes >= 3) { activeTeam = activeTeam === 1 ? 2 : 1; currentStrikes = 0; updateActiveTeamUI(); updateStrikeUI(); }
-                startQuestionTimer();
-            }, 1500);
-        }
+        // --- Hotkey Papan Kekunci ---
+        document.addEventListener('keydown', (event) => {
+            if (isGameOver || !isGameActive || isSettingsOpen) return;
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.isContentEditable)) return;
 
-        function startNextRoundTimer(duration) {
-            const nextBtn = document.getElementById('btn-next-round'); isCountingDown = true; let timer = duration;
-            nextBtn.style.setProperty('--timer-dur', duration + 's'); nextBtn.classList.add('timeout-btn');
-            const isLastRound = currentRound >= totalRounds - 1; let actionText = isLastRound ? "Tamat" : "Beralih";
-            nextBtn.innerHTML = `<span class="relative z-10">${actionText} dalam ${timer}s ⏳ (Langkau)</span>`;
-            countdownInterval = setInterval(() => {
-                if (isGamePaused) return; timer--;
-                if (timer > 0) nextBtn.innerHTML = `<span class="relative z-10">${actionText} dalam ${timer}s ⏳ (Langkau)</span>`;
-                else { clearInterval(countdownInterval); isCountingDown = false; nextBtn.classList.remove('timeout-btn'); executeNextRound(); }
-            }, 1000);
-        }
-
-        function nextRound() {
-            if (isGameOver) return;
-            const nextBtn = document.getElementById('btn-next-round');
-            if (isCountingDown) { clearInterval(countdownInterval); isCountingDown = false; nextBtn.classList.remove('timeout-btn'); executeNextRound(); return; }
-            if (questionTimerInterval) clearInterval(questionTimerInterval);
-            let hasUnrevealed = false; if (gameData[currentRound] && gameData[currentRound].answers) { for (let i = 0; i < gameData[currentRound].answers.length; i++) if (!revealedAnswers[i]) hasUnrevealed = true; }
-            if (hasUnrevealed && !missedRevealed) {
-                for (let i = 0; i < gameData[currentRound].answers.length; i++) { if (!revealedAnswers[i]) { const card = document.getElementById(`card-${i}`); if (card) card.classList.add('revealed', 'missed'); } }
-                missedRevealed = true;
+            if (event.key >= '1' && event.key <= '8') {
+                revealAnswer(parseInt(event.key) - 1);
+            } else if (event.key.toLowerCase() === 'x') {
+                showStrike();
             }
-            startNextRoundTimer(5);
-        }
-
-        function executeNextRound() { if (currentRound >= totalRounds - 1) { showWinnerPopup(); return; } currentRound++; loadRound(currentRound); }
-
-        function showWinnerPopup() {
-            if (questionTimerInterval) clearInterval(questionTimerInterval);
-            const winnerOverlay = document.getElementById('winner-overlay'); const bgmAudio = document.getElementById('bgm-audio');
-            bgmAudio.pause(); isBgmPlaying = false; const btn = document.getElementById('bgm-btn');
-            if (btn) { btn.innerText = "🔇 BGM (OFF)"; btn.classList.replace('bg-blue-600', 'bg-gray-600'); btn.classList.replace('shadow-[0_0_10px_blue]', 'shadow-[0_0_10px_gray]'); }
-
-            const t1Name = document.getElementById('team1-name').innerText; const t2Name = document.getElementById('team2-name').innerText;
-            let winnerText = ""; let winningScore = 0;
-            if (team1Score > team2Score) { winnerText = "JUARA: " + t1Name.toUpperCase(); winningScore = team1Score; } 
-            else if (team2Score > team1Score) { winnerText = "JUARA: " + t2Name.toUpperCase(); winningScore = team2Score; } 
-            else { winnerText = "KEDUDUKAN SERI!"; winningScore = team1Score; }
-            
-            document.getElementById('winner-name-display').innerText = winnerText; document.getElementById('winner-score-display').innerText = "Markah Keseluruhan: " + winningScore;
-            const victoryAudio = document.getElementById('victory-audio');
-            if (customVictoryUrl !== '' || customVictoryFileUrl !== '') { victoryAudio.loop = false; victoryAudio.currentTime = 0; victoryAudio.play().catch(e => console.warn(e)); }
-            winnerOverlay.classList.remove('hidden'); winnerOverlay.classList.add('flex'); startFireworks();
-        }
-
-        function closeWinnerPopup() {
-            const winnerOverlay = document.getElementById('winner-overlay'); winnerOverlay.classList.remove('flex'); winnerOverlay.classList.add('hidden');
-            const victoryAudio = document.getElementById('victory-audio'); victoryAudio.pause(); victoryAudio.currentTime = 0; stopFireworks();
-            const bgmAudio = document.getElementById('bgm-audio'); bgmAudio.pause(); isBgmPlaying = false;
-            const btn = document.getElementById('bgm-btn');
-            if (btn) { btn.innerText = "🔇 BGM (OFF)"; btn.classList.replace('bg-blue-600', 'bg-gray-600'); btn.classList.replace('shadow-[0_0_10px_blue]', 'shadow-[0_0_10px_gray]'); }
-            
-            initGame(); isGameOver = true; if (questionTimerInterval) clearInterval(questionTimerInterval);
-            document.getElementById('q-timer-bar').style.width = '0%'; document.getElementById('q-timer-bar').classList.remove('blink');
-            const qTimerText = document.getElementById('q-timer-text');
-            if (qTimerText) { qTimerText.innerText = "TAMAT - SILA MASUK TETAPAN & MULA SEMULA"; qTimerText.classList.remove('text-gray-300'); qTimerText.classList.add('text-red-400', 'animate-pulse'); }
-        }
-
-        let fwCanvas, fwCtx, fireworks = [], fwAnimationId;
-        function startFireworks() { fwCanvas = document.getElementById('fireworks-canvas'); if (!fwCanvas) return; fwCtx = fwCanvas.getContext('2d'); resizeFireworks(); window.addEventListener('resize', resizeFireworks); fireworks = []; fwLoop(); }
-        function resizeFireworks() { if (!fwCanvas) return; fwCanvas.width = window.innerWidth; fwCanvas.height = window.innerHeight; }
-        function stopFireworks() { if (fwAnimationId) cancelAnimationFrame(fwAnimationId); window.removeEventListener('resize', resizeFireworks); if (fwCtx && fwCanvas) fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height); }
-        function createExplosion(x, y) {
-            const count = 60 + Math.random() * 40;
-            for (let i = 0; i < count; i++) {
-                const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 6 + 2;
-                fireworks.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: Math.random() * 3 + 1, color: `hsl(${Math.random() * 360}, 100%, 60%)`, alpha: 1, decay: Math.random() * 0.015 + 0.005 });
-            }
-        }
-        function fwLoop() {
-            fwAnimationId = requestAnimationFrame(fwLoop);
-            fwCtx.globalCompositeOperation = 'destination-out'; fwCtx.fillStyle = 'rgba(0, 0, 0, 0.2)'; fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height); fwCtx.globalCompositeOperation = 'lighter';
-            if (Math.random() < 0.08) createExplosion(Math.random() * fwCanvas.width, Math.random() * (fwCanvas.height * 0.6));
-            for (let i = fireworks.length - 1; i >= 0; i--) {
-                let p = fireworks[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.alpha -= p.decay;
-                if (p.alpha <= 0) { fireworks.splice(i, 1); continue; }
-                fwCtx.beginPath(); fwCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); fwCtx.fillStyle = p.color; fwCtx.globalAlpha = p.alpha; fwCtx.fill();
-            }
-            fwCtx.globalAlpha = 1;
-        }
-
-        let isAudioStarted = false; let isBgmPlaying = true;
-        const dingSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "triangle" }, envelope: { attack: 0.01, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination(); dingSynth.volume.value = -5;
-        const buzzerSynth = new Tone.PolySynth(Tone.Synth, { oscillator: { type: "sawtooth" }, envelope: { attack: 0.01, decay: 0.2, sustain: 0.5, release: 0.5 } }).toDestination(); buzzerSynth.volume.value = 2; 
-
-        async function startAudio() {
-            await Tone.start(); isAudioStarted = true; document.getElementById('audio-overlay').classList.add('hidden'); document.getElementById('bgm-btn').classList.remove('hidden');
-            const bgmAudio = document.getElementById('bgm-audio'); if (isBgmPlaying && (customBgmUrl !== '' || customBgmFileUrl !== '')) bgmAudio.play().catch(e => console.warn(e));
-            isGameActive = true; startQuestionTimer();
-        }
-
-        function playDingSound() { if (!isAudioStarted) return; dingSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n"); }
-        function playBuzzerSound() { if (!isAudioStarted) return; buzzerSynth.triggerAttackRelease(["C2", "C#2", "D2"], "4n"); }
-        function toggleBGM() {
-            if (!isAudioStarted) return; const btn = document.getElementById('bgm-btn'); const bgmAudio = document.getElementById('bgm-audio');
-            if (isBgmPlaying) { bgmAudio.pause(); btn.innerText = "🔇 BGM (OFF)"; btn.classList.replace('bg-blue-600', 'bg-gray-600'); btn.classList.replace('shadow-[0_0_10px_blue]', 'shadow-[0_0_10px_gray]'); } 
-            else {
-                if (customBgmUrl !== '' || customBgmFileUrl !== '') bgmAudio.play().catch(e => console.warn(e)); else showAlert("🎵 Sila masukkan URL atau muat naik fail audio Muzik Latar di Tetapan terlebih dahulu.");
-                btn.innerText = "🔊 BGM (ON)"; btn.classList.replace('bg-gray-600', 'bg-blue-600'); btn.classList.replace('shadow-[0_0_10px_gray]', 'shadow-[0_0_10px_blue]');
-            }
-            isBgmPlaying = !isBgmPlaying;
-        }
-
-        document.addEventListener('keydown', function(event) {
-            if (isGameOver) return;
-            const activeElement = document.activeElement; const isInput = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable;
-            if (isInput) return; 
-            if (event.key >= '1' && event.key <= '8') { const index = parseInt(event.key) - 1; if (gameData[currentRound] && gameData[currentRound].answers && index < gameData[currentRound].answers.length) revealAnswer(index); }
-            if (event.key.toLowerCase() === 'x') showStrike();
         });
 
+        // --- Mula Aplikasi pada Window Load ---
         window.onload = async () => {
-            const initPromise = initGameWrapper();
-            const timerPromise = new Promise(resolve => setTimeout(resolve, 3000));
-            await Promise.all([initPromise, timerPromise]);
+            const minLoading = new Promise(resolve => setTimeout(resolve, 1500));
+            const cloudInit = (async () => {
+                if (window.waitForFirebaseAuth) {
+                    const ok = await window.waitForFirebaseAuth();
+                    if (ok && window.loadFromCloud) {
+                        const cloudData = await window.loadFromCloud();
+                        if (cloudData) applyData(cloudData);
+                    }
+                }
+            })();
+
+            await Promise.all([
+                minLoading,
+                Promise.race([cloudInit, new Promise(resolve => setTimeout(resolve, 4000))])
+            ]);
+
+            initGame();
+            startLiveSync();
+
             const overlay = document.getElementById('loading-overlay');
-            if (overlay) { overlay.style.opacity = '0'; setTimeout(() => overlay.classList.add('hidden'), 500); }
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.classList.add('hidden'), 500);
+            }
         };
     </script>
 </body>
